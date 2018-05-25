@@ -17,7 +17,8 @@ var sequelize = new Sequelize(
             max: 5,
             min: 0,
             idle: 30000
-        }
+        },
+        timezone: '+08:00'  //sequelize 存储数据时默认采用UTC时区，比东八区早8小时
     });
 
 sequelize

@@ -49,7 +49,7 @@ class Common {
             return false;
         }
         return true;
-    }
+    };
 }
 
 let common = new Common();

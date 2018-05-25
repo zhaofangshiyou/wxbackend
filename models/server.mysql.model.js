@@ -73,6 +73,7 @@ let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
     , is_invoicing: DataTypes.STRING      //是否开过发票
     , poundage: DataTypes.DECIMAL(10,2)  //手续费
     , card_id: DataTypes.INTEGER //卡号
+    , oil_id: DataTypes.INTEGER //
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加created_at、updated_at两个字段，分别表示创建和更新时间
@@ -254,8 +255,8 @@ User.hasMany(ScoreFlow, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(Discount, {foreignKey: 'user_id', targetKey: 'id'});
 Region.hasMany(Oil,{foreignKey: 'province_id',targetKey: 'id'});
 
-OilFlow.sync({force: false});
-ChargeFlow.sync({force: false});
+OilFlow.sync();
+ChargeFlow.sync();
 mSequelize.sync();
 // mSequelize.sync({force: true});//慎用，会清空数据库所有数据表,然后重新建表
 

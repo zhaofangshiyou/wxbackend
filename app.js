@@ -31,15 +31,13 @@ const backen_amount = require('./routes/backen/amount')
 const backen_oil = require('./routes/backen/oil')
 const backen_region = require('./routes/backen/region')
 const backen_oil_price = require('./routes/backen/oil_price')
+const backen_report_consume = require('./routes/backen/consume')
 
 const config = require('./config/config');
 console.log("==console== app.js")
 console.log(config.REDIS_HOST)
 // error handler
 onerror(app)
-
-
-
 
 app.use(cors());
 
@@ -84,6 +82,7 @@ app.use(backen_amount.routes(), backen_amount.allowedMethods())
 app.use(backen_oil.routes(), backen_oil.allowedMethods())
 app.use(backen_region.routes(),backen_region.allowedMethods())
 app.use(backen_oil_price.routes(),backen_oil_price.allowedMethods())
+app.use(backen_report_consume.routes(),backen_report_consume.allowedMethods())
 
 
 // error-handling

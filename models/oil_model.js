@@ -265,6 +265,5 @@ class OilModel {
 
 }
 
-
 let oilModel = new OilModel();
-module.exports = oilModel
+module.exports = oilModel;

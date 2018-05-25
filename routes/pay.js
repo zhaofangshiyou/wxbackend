@@ -113,6 +113,7 @@ router.all('/unifiedorder', async (ctx, next) => {
         returnValue.out_trade_no = out_trade_no;  // 商户订单号
         // 小程序 客户端支付需要 nonceStr,timestamp,package,paySign  这四个参数
         returnValue.nonceStr = parseResult.xml.nonce_str[0]; // 随机字符串
+        timestamp = Math.round(new Date().getTime() / 1000); // 当前时间
         returnValue.timestamp = timestamp.toString(); // 时间戳
         returnValue.package = 'prepay_id=' + parseResult.xml.prepay_id[0]; // 统一下单接口返回的 prepay_id 参数值
         let paySign = wx.getPaySign(config.WX_APPID, returnValue.nonceStr, returnValue.package, 'MD5', timestamp); // 签名

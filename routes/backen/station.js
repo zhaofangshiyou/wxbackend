@@ -232,10 +232,10 @@ router.post('/', async (ctx, next) => {//新增油站
             }
         })
 
-        if ((!province_info) || (province_info.length == 0)) {
+        if ((!province_info) || (province_info.length == 0) || (province != province_info[0].name)) {
             ctx.body = {
                 status: 2,
-                msg: "传入的省份信息province_id错误."
+                msg: "传入的省份信息错误."
             }
             return;
         }

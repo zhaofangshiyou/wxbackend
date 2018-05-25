@@ -42,7 +42,7 @@ class WX{
         console.log("=========================>")
         let newArgs = {};
         keys.forEach(function (key) {
-            newArgs[key] = args[key];
+            newArgs[key.toLowerCase()] = args[key];
         });
 
         let str = '';
