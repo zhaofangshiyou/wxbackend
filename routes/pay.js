@@ -59,6 +59,8 @@ router.all('/unifiedorder', async (ctx, next) => {
     let body = '测试支付zone'; // 商品描述
     let notify_url = 'https://api.zfsyonline.com/v1/pay/callback' // 支付成功的回调地址  可访问 不带参数
     let nonce_str = await wx.getNonceStr(); // 随机字符串
+    // let nonce_str = '5K8264ILTKCH16CQ2502SI8ZNMTM67VS'; // 随机字符串
+
     let out_trade_no = wx.getWxPayOrdrID(); // 商户订单号
     let total_fee = '1'; // 订单价格 单位是 分
     let timestamp = Math.round(new Date().getTime() / 1000); // 当前时间

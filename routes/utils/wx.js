@@ -42,7 +42,7 @@ class WX{
         console.log("=========================>")
         let newArgs = {};
         keys.forEach(function (key) {
-            newArgs[key.toLowerCase()] = args[key];
+            newArgs[key] = args[key];
         });
 
         let str = '';
@@ -57,10 +57,10 @@ class WX{
     getPaySign(appid, nonce_str, package_, signType, timeStamp) {
         let ret = {
             appid: appid,
+            timeStamp: timeStamp.toString(),
             nonceStr: nonce_str,
             package: package_,
-            signType: signType,
-            timeStamp: timeStamp.toString()
+            signType: signType
         };
         let str = this.raw(ret);
         let apiKey = config.WX_APIKEY; //key为商户平台设置的密钥key
