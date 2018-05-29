@@ -337,7 +337,8 @@ class ConsumeModel {
         return ret;
     };
 
-    //
+    //往来账
+
 }
 
 let consumeModel = new ConsumeModel();
