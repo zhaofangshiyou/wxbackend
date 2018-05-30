@@ -128,7 +128,7 @@ class ConsumeModel {
 
         // 查找不带油品列表
         if (type == 1) {
-            sql = "SELECT sta.id as atation_id, " +
+            sql = "SELECT sta.id as station_id, " +
                 " sta.province as province_name, " +
                 "    sta.name as station_name, " +
                 "    sum(of.vol) as vol , " +
@@ -189,7 +189,7 @@ class ConsumeModel {
         }
 
         if (type ==1) {
-            sql = sql + " group by sta.province,sta.name, now() order by sta.province,sta.name asc"
+            sql = sql + " group by sta.province,sta.name, now() order by sta.province,sta.name，sta.id asc"
         } else if (type == 2) {
             sql = sql +  " group by sta.province,sta.name, now(),of.oil_type order by sta.province,sta.name asc"
         }
