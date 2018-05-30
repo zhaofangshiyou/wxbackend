@@ -226,25 +226,25 @@ router.get('/accounts', async (ctx, next) => {
             let row = {};
             if (header[i].prop != "station_name") {
                 row["station_name"] = header[i].label ;
-                row["station_id"] = header[i].prop;
+                row["station_id"] = parseInt(header[i].prop);
             } else {
                 continue;
             }
             accRow.push(row)
         }
-
+      
         if (acc && acc.length > 0){
             for (let i=0; i<header.length; i++){
                 let prop = header[i].prop  //列
-                prop = parseInt(prop)
                 if (prop == "station_name") {
                     continue;
                 }
-
+                prop = parseInt(prop);
                 for (let m=0; m<accRow.length; m++){
                     let row = accRow[m]
                     let rowstaId = row.station_id
                     accRow[m][prop] = "-";
+
                     for (let j=0; j<acc.length; j++){
                         if ((prop == acc[j].sta_id) && (rowstaId == acc[j].station_id)){
                             accRow[m][prop] = acc[j].actual_money;
