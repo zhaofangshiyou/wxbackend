@@ -338,7 +338,47 @@ class ConsumeModel {
     };
 
     //往来账
+    async queryAccountList(options){
+        let begin_time = options.begin_time
+        let end_time = options.end_time
+        let oil_id = parseInt(options.oil_id)
+        let sql_param = ""    
+        if (begin_time && (begin_time != "")){
+            sql_param = sql_param + " and of.created_at >= :begin_time";
+        }
 
+        if (end_time && (end_time != "")){
+            sql_param = sql_param + " and of.created_at <= :end_time";
+        }
+
+        if (oil_id && (oil_id != "")){
+            sql_param = sql_param + " and of.oil_id = :oil_id";
+        }
+       
+        let sql = "select of_sta.*,c_sta.* "+
+            " from (select  sta.id as sta_id,sta.name as sta_name, of.card_id,"+
+            "       sum((of.money-of.deduction_amount)) as actual_money "+
+            "        from  stations sta,  oil_flows of "+
+            "    where sta.id = of.station_id  "+
+            "      and sta.deleted_at is null " +
+            "      and of.deleted_at is null " + sql_param +
+            "    group by sta.name,sta.id  ,of.card_id "+
+            "        order by sta.id desc ) of_sta "+
+            " left join "+
+            "        (select sta.id as station_id, sta.name as station_name,c.id "+
+            "        from stations sta, cards c "+
+            "        where sta.id = c.station_id "+
+            "           and sta.deleted_at is null " +
+            "           and c.deleted_at is null " +
+            "        order by sta.id desc ) c_sta "+
+            "        on (c_sta.id = of_sta.card_id ) "+
+            "        where of_sta.sta_id <> c_sta.station_id ";
+
+        let ret = await Conn.query(sql,{replacements: {begin_time:begin_time, end_time:end_time,
+                oil_id:oil_id}, type: Sequelize.QueryTypes.SELECT});
+   
+        return ret;
+    }
 }
 
 let consumeModel = new ConsumeModel();

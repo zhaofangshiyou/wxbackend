@@ -200,5 +200,73 @@ router.get('/recharge', async (ctx, next) => {
 })
 
 //往来账
+router.get('/accounts', async (ctx, next) => {
+    try {
+        let {begin_time, end_time, oil_id} = ctx.query;
+
+        let data = ctx.query;
+        let acc = await financeModel.queryAccountList(data);
+        let stationInfo = await stationModel.queryAllStationInfo();
+        
+        let header = [];
+        //第一行，标题行
+        header.push({"prop":"station_name","label":"收入\\支出"});
+        if (stationInfo && (stationInfo.length >0)){
+            for (let i=0; i<stationInfo.length; i++) {
+                let row = {}
+                row.prop = stationInfo[i].id;
+                row.label = stationInfo[i].name;
+                header.push(row);
+            }
+        }
+
+        let accRow = [];
+        //第一列，与标题行对应
+        for (let i=0; i<header.length; i++) {
+            let row = {};
+            if (header[i].prop != "station_name") {
+                row["station_name"] = header[i].label ;
+                row["station_id"] = header[i].prop;
+            } else {
+                continue;
+            }
+            accRow.push(row)
+        }
+
+        if (acc && acc.length > 0){
+            for (let i=0; i<header.length; i++){
+                let prop = header[i].prop  //列
+                if (prop == "station_name") {
+                    continue;
+                }
+
+                for (let m=0; m<accRow.length; m++){
+                    let row = accRow[m]
+                    let rowstaId = row.station_id
+                    accRow[m][prop] = "-";
+                    for (let j=0; j<acc.length; j++){
+                        if ((prop == acc[j].sta_id) && (rowstaId == acc[j].station_id)){
+                            accRow[m][prop] = acc[j].actual_money;
+                        } 
+                    }
+                }
+            }
+        }
+
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : {
+                header:header,
+                accounts_list :accRow
+            }
+        }
+    } catch(error){
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
+})
 
 module.exports = router

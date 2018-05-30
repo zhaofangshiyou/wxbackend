@@ -268,11 +268,9 @@ router.get('/price', async (ctx, next) => {
             let oilKV = {}
             oilKV.prop = oil_id.toString();
             oilKV.lable = oil_name;
-            //oilKV[oil_id] = oil_name;
             header.push(oilKV)
         }
         header.push({"prop":"active_at","lable":"生效时间"});
-        //console.log(JSON.stringify(header))
 
         let oil_price_list = []
         for (let i=0; i<priceList.length; i++) {
