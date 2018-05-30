@@ -214,7 +214,7 @@ router.get('/accounts', async (ctx, next) => {
         if (stationInfo && (stationInfo.length >0)){
             for (let i=0; i<stationInfo.length; i++) {
                 let row = {}
-                row.prop = stationInfo[i].id;
+                row.prop = stationInfo[i].id.toString();
                 row.label = stationInfo[i].name;
                 header.push(row);
             }
@@ -236,6 +236,7 @@ router.get('/accounts', async (ctx, next) => {
         if (acc && acc.length > 0){
             for (let i=0; i<header.length; i++){
                 let prop = header[i].prop  //列
+                prop = parseInt(prop)
                 if (prop == "station_name") {
                     continue;
                 }
