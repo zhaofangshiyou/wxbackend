@@ -221,6 +221,18 @@ router.get('/accounts', async (ctx, next) => {
         }
 
         let accRow = [];
+        if (!acc || (acc.length == 0)) {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    header:header,
+                    accounts_list :accRow
+                }
+            }
+            return;
+        }
+
         //第一列，与标题行对应
         for (let i=0; i<header.length; i++) {
             let row = {};
