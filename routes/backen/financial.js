@@ -32,7 +32,7 @@ router.get('/consume/detail', async (ctx, next) => {
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
-        page_num = (page_num || (parseInt(page_num) >= 0)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
+        page_num = (page_num && (parseInt(page_num) >= 1)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
 
         data.num = num;
         data.page_num = page_num;
@@ -82,7 +82,7 @@ router.get('/consume', async (ctx, next) => {
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
-        page_num = (page_num || (parseInt(page_num) >= 0)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
+        page_num = (page_num && (parseInt(page_num) >= 1)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
 
         data.num = num;
         data.page_num = page_num;
@@ -123,7 +123,7 @@ router.get('/recharge/detail', async (ctx, next) => {
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
-        page_num = (page_num || (parseInt(page_num) >= 0)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
+        page_num = (page_num && (parseInt(page_num) >= 1)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
 
         if (card_no && card_no!= "") {
             let card_id = parseInt(card_no.slice(4));
@@ -171,7 +171,7 @@ router.get('/recharge', async (ctx, next) => {
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
-        page_num = (page_num || (parseInt(page_num) >= 0)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
+        page_num = (page_num && (parseInt(page_num) >= 1)) ? (parseInt(page_num) - 1) : 0;  //默认从第一条开始
 
         data.num = num;
         data.page_num = page_num;
@@ -199,7 +199,7 @@ router.get('/recharge', async (ctx, next) => {
     }
 })
 
-//往来账
+//往来账,只计算了在使用的油站
 router.get('/accounts', async (ctx, next) => {
     try {
         let {begin_time, end_time, oil_id} = ctx.query;

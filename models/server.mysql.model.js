@@ -75,8 +75,8 @@ let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
     , card_id: DataTypes.INTEGER //卡号
     , oil_id: DataTypes.INTEGER //
 
-    , operator: DataTypes.STRING //开发票操作员
-    , cc_flow_id: DataTypes.DataTypes.BIGINT(11) //中控流水 id
+    , operator:DataTypes.BIGINT(11) //开发票操作员
+    , cc_flow_id: DataTypes.BIGINT(11) //中控流水 id
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加created_at、updated_at两个字段，分别表示创建和更新时间

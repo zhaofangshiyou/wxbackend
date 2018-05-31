@@ -43,7 +43,7 @@ router.get('/', async (ctx, next) => {
         let {province_id, id, page_num, num} = ctx.query;
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
-        page_num = (page_num || (parseInt(page_num)>=0)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
+        page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
 
         let options = {}
         if (province_id) {

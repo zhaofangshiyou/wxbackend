@@ -31,6 +31,7 @@ const backen_oil = require('./routes/backen/oil')
 const backen_region = require('./routes/backen/region')
 const backen_oil_price = require('./routes/backen/oil_price')
 const backen_report_financial = require('./routes/backen/financial')
+const backen_report_discount = require('./routes/backen/discount')
 
 const config = require('./config/config');
 console.log("==console== app.js")
@@ -81,7 +82,7 @@ app.use(backen_oil.routes(), backen_oil.allowedMethods())
 app.use(backen_region.routes(),backen_region.allowedMethods())
 app.use(backen_oil_price.routes(),backen_oil_price.allowedMethods())
 app.use(backen_report_financial.routes(),backen_report_financial.allowedMethods())
-
+app.use(backen_report_discount.routes(),backen_report_discount.allowedMethods())
 
 // error-handling
 app.on('error', (err, ctx) => {

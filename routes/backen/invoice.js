@@ -6,14 +6,14 @@ const router = require('koa-router')();
 const config = require('../../config/config')
 const jwt = require('jsonwebtoken');
 const koa_jwt = require('koa-jwt');
-const MysqlModel = require('../../models/server.mysql.model')
-const Station = MysqlModel.get('Station');
-const commonUtil = require('../utils/common')
-router.prefix(`/${config.VERSION}/backen/station`)
-router.use(function (ctx, next) {
-    // ctx.set('Access-Control-Allow-Origin':'*');
-    return next();
-});
+const oilModel = require('../../models/oil_model');
+const stationModel = require('../../models/station_model');
+const invoiceModel = require('../../models/invoice_model');
+const userModel = require('../../models/user_model');
+const commonUtil = require('../utils/common');
+
+router.prefix(`/${config.VERSION}/backen`)
+
 router.use(function (ctx, next) {
     return next().catch((err) => {
         if (401 == err.status) {
@@ -25,47 +25,88 @@ router.use(function (ctx, next) {
     });
 });
 
-// router.use(koa_jwt({secret}))
+router.get('/invoice', async (ctx, next) => {
+    try {
+        let {card_no, page_num, num} = ctx.query
 
+        num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
+        page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
 
+        let invoiceList = await invoiceModel.queryInvoiceList(card_no, page_num ,num)
 
+        let invoiceCnt = await invoiceModel.queryInvoiceList(card_no, page_num ,0)
 
-router.post('/', async (ctx, next) => {//新增油站
-    ctx.body = "asdf";
-    return;
-    console.log(ctx.request.body)
-    console.log(ctx.query)
-    let {name, avatar_url, longitude, latitude, oil_gum_nums, province, city, address} = ctx.request.body
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : {
+                invoice_list : invoiceList,
+                invoice_total : invoiceCnt.length
+            }
+        }
 
-    console.log("==> post")
-    let newStation = await Station.create({
-        name: name  //油站名
-        , avatar_url: avatar_url   //油站缩略图
-        , longitude: longitude   //经度
-        , latitude: latitude   //纬度
-        , address: address   //详细地址
-        , oil_gum_nums: oil_gum_nums   //油枪号
-        , province: province   //省份
-        , city: city   //城市
-    })
-    ctx.body = {
-        status: 0
-        , msg: "success"
-        , data: {
-            station: newStation
+    } catch(error) {
+        ctx.body = {
+            status : 1,
+            msg : "内部程序错误."
         }
     }
 })
-router.put('/:stationId', async (ctx, next) => {
-    console.log("==> put")
-    console.log(ctx.params.stationId)
-    ctx.body = ctx.params
+
+router.post('/invoice', async (ctx, next) => {
+    try {
+        let {cc_flow_id, user_id} = ctx.request.body
+        let params = {cc_flow_id,user_id}
+
+        if (commonUtil.reqParamsIsNull(params)) {
+            ctx.body = {
+                status : 2,
+                msg : "传入参数错误." 
+            }
+            return ;
+        }
+
+        user_id = parseInt(user_id);
+        let userInfo = await userModel.queryUserById(user_id)
+        if (!userInfo || (userInfo.length != 1)) {
+            ctx.body = {
+                status : 5,
+                msg : "传入的用户不存在."
+            }
+        }
+
+        //let operator = userInfo[0].name; //不存名字，名字可能会改
+        let oilFlowInfo = await invoiceModel.queryOilFlowsByCCFlowId(cc_flow_id);
+        if (!oilFlowInfo || (oilFlowInfo.length !=1)){
+            ctx.body = {
+                status : 3,
+                msg : "该发票流水码不存在."
+            }
+            return ;
+        }
+
+        if (oilFlowInfo[0].is_invoicing == 1) {
+            ctx.body = {
+                status : 4,
+                msg : "该流水码已经开过发票，请确认." 
+            }
+            return ;
+        }
+
+        let ret = await invoiceModel.addInvoice(cc_flow_id,user_id);
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : ret
+        }
+    } catch (error){
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
 })
-router.delete('/:stationId', async (ctx, next) => {
-    console.log("==> delete")
-    console.log(ctx.params.stationId)
-    ctx.body = ctx.params
-})
+
 
 
 module.exports = router
