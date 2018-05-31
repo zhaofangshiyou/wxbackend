@@ -27,13 +27,13 @@ class InvoiceModel {
                     " ( select sta.name as station_name, " +
                     " concat(sta.id+1000,LPAD(of.card_id,8,0)) as card_no,"+
                     " of.cc_flow_id,"+
-                    " of.created_at as consume_time," +
+                    " date_format(of.created_at,'%Y-%m-%d %H:%i:%s') as consume_time," +
                     " of.oil_type as oil_name,"+
                     " of.vol,"+
                     " of.money,"+
                     " of.is_invoicing,"+
                     " (case of.is_invoicing when 0 then '未开' when 1 then '已开' else '未记录' end) as is_invoicing_name,"+
-                    " of.updated_at as invoice_time, "+
+                    " date_format(of.updated_at,'%Y-%m-%d %H:%i:%s') as invoice_time, "+
                     " of.operator "+
                 " from oil_flows of, stations sta "+
                 " where of.station_id = sta.id " +  
@@ -57,7 +57,7 @@ class InvoiceModel {
             },
             limit : 1 
         })
-
+         
         return ret;
     };
 
