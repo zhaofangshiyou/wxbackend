@@ -75,8 +75,8 @@ let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
     , card_id: DataTypes.INTEGER //卡号
     , oil_id: DataTypes.INTEGER //
 
-    , operator:DataTypes.BIGINT(11) //开发票操作员
-    , cc_flow_id: DataTypes.BIGINT(11) //中控流水 id
+    , operator: DataTypes.STRING //开发票操作员
+    , cc_flow_id: DataTypes.DataTypes.BIGINT(11) //中控流水 id
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加created_at、updated_at两个字段，分别表示创建和更新时间
@@ -187,7 +187,7 @@ let DiscountRule = mSequelize.define('discount_rule', {//折扣表（该表有�
     , discount_type: DataTypes.STRING   //优惠类型，使用哪种优惠规则以此为判断
     , discount_date_start: DataTypes.DATE()   //优惠日期
     , discount_date_end: DataTypes.DATE()   //优惠日期
-    , discount: DataTypes.STRING   //折扣
+    , discount: DataTypes.DECIMAL(10, 2)   //折扣
     , discount_days: DataTypes.INTEGER //折扣天数
     
     // , statin_id: DataTypes.STRING   //油站ID
