@@ -51,7 +51,7 @@ class StationModel {
     //查找油站列表，不会用sequelize
     async queryStationList(province_id,station_id, page_num, num){
 
-        let sql = " select sta.id, sta.name, sta.province, sta.oil_gum_nums, sta.province_id, sta.city, " +
+        let sql = " select sta.id, sta.name, sta.province, sta.oil_gum_nums, sta.province_id, sta.city,sta.type, " +
             " 1000+sta.id as station_id, group_concat(oi.name separator '、') as oil_list" +
             " from oil_infos oi, stations sta " +
             " where find_in_set(oi.id, sta.oil_list) " +

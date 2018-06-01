@@ -188,6 +188,8 @@ let DiscountRule = mSequelize.define('discount_rule', {//折扣表（该表有�
     , discount_date_start: DataTypes.DATE()   //优惠日期
     , discount_date_end: DataTypes.DATE()   //优惠日期
     , discount: DataTypes.STRING   //折扣
+    , discount_days: DataTypes.INTEGER //折扣天数
+    
     // , statin_id: DataTypes.STRING   //油站ID
 
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
