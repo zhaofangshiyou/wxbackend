@@ -17,6 +17,23 @@ const Op = Sequelize.Op;
 const Conn = require('../db/mysql_connection')
 
 class DiscountModel {
+    //找到discount_rule的油品有哪些栏位
+    async queryColumnFromDiscount(){
+        let sql = "select * from information_schema.COLUMNS  "+
+                   " where TABLE_SCHEMA = 'zfdb'  "+
+                      "and TABLE_NAME = 'discount_rules' " +
+                      "and COLUMN_NAME like 'oil_%'";
+        let ret = await Conn.query(sql,{type: Sequelize.QueryTypes.SELECT});
+        return ret;
+    };
+    
+    //新增优惠规则
+    async addDiscountRule(options){
+        let ret = await DiscountRule.create(
+            options
+        )
+        return ret;
+    };
 
 }
 

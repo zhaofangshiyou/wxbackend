@@ -73,6 +73,7 @@ router.post('/invoice', async (ctx, next) => {
                 status : 5,
                 msg : "传入的用户不存在."
             }
+            return ;
         }
 
         //let operator = userInfo[0].name; //不存名字，名字可能会改
