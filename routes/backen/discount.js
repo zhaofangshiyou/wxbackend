@@ -47,7 +47,7 @@ router.post('/add', async(ctx, next) => {
                 (!commonUtil.isJsonString(oil_price)) )) {
                     ctx.body = {
                         status : 2,
-                        msg : "传入参数错误"
+                        msg : "传入参数错误"+commonUtil.isJsonString(oil_price)
                     }
                 return ;
             }
@@ -55,7 +55,7 @@ router.post('/add', async(ctx, next) => {
             station_ids = JSON.parse(station_ids);
             oil_price = JSON.parse(oil_price);
             let discountColumn = await discountModel.queryColumnFromDiscount();
-            if ((!discountColumn) || (discountColumn,length ==0)){
+            if ((!discountColumn) || (discountColumn.length ==0)){
                 ctx.body = {
                     status : 4,
                     msg : "数据库存储字段已变更，联系开发人员修改."
@@ -76,8 +76,8 @@ router.post('/add', async(ctx, next) => {
                 for (let j=0; j<oil_price.length; j++) {
                     let oil_id = oil_price[j].oil_id;
                     let price = oil_price[j].price;
-
-                    let oilInfo = await queryOilById(oil_id);
+                    console.log("++++++++++++++++++++++++++++");
+                    let oilInfo = await queryOilById(parseInt(oil_id));
                     if (!oilInfo || oilInfo.length != 1 ){
                         continue;
                     }
