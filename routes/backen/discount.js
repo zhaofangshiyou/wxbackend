@@ -386,12 +386,10 @@ router.get('/doc', async(ctx, next)=>{
 
 //删除
 router.delete('/doc/del', async(ctx, next)=> {
-    console.log("=======")
     try {
-        console.log("=======")
+
         let {ids} = ctx.request.body
-        
-        console.log("=======")
+
         if ((!ids) || (!commonUtil.isJsonString(ids))){
             ctx.body = {
                 status : 2,
@@ -399,7 +397,7 @@ router.delete('/doc/del', async(ctx, next)=> {
             }
             return ;
         }
-        console.log("=======")
+  
         ids = JSON.parse(ids);
        
         let ret = await discountModel.delDiscountRuleDoc(ids);
