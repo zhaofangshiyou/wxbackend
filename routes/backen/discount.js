@@ -26,10 +26,8 @@ router.use(function (ctx, next) {
 //新增优惠信息
 router.post('/add', async(ctx, next) => {
     try {
-        let {province_id, station_ids, discount_type, begin_time, end_time,
+        let {province_id, station_ids, discount_type, begin_time, end_time,               
              oil_price, discount_days, amount_start} = ctx.request.body;
-        let params = {province_id, station_ids, discount_type, begin_time,
-                        end_time, oil_price, discount_days, amount_start};
         
         if ((!discount_type) || (discount_type == "")) {
             ctx.body = {
@@ -42,14 +40,28 @@ router.post('/add', async(ctx, next) => {
         discount_type = parseInt(discount_type); 
         //优惠类型1：设定各个油品的油价优惠价,有效天数，优惠开始结束时间
         if (discount_type && (discount_type ==1)){
+
+            let params = {province_id, station_ids, discount_type, begin_time,
+                end_time, oil_price, discount_days, amount_start};
+
             if ((commonUtil.reqParamsIsNull(params) || 
                 (!commonUtil.isJsonString(station_ids)) ||
                 (!commonUtil.isJsonString(oil_price)) )) {
                     ctx.body = {
                         status : 2,
-                        msg : "传入参数错误"+commonUtil.isJsonString(oil_price)
+                        msg : "传入参数错误."
                     }
                 return ;
+            }
+
+            let begin_time_stamp = new Date(begin_time).getTime();
+            let end_time_stamp = new Date(end_time).getTime();
+            if ((!begin_time_stamp) || (!end_time_stamp) || 
+                (begin_time_stamp > end_time_stamp)) {
+                    ctx.body = {
+                        status : 5,
+                        msg : "开始时间不能大于结束时间。"
+                    }
             }
 
             station_ids = JSON.parse(station_ids);
@@ -76,21 +88,19 @@ router.post('/add', async(ctx, next) => {
                 for (let j=0; j<oil_price.length; j++) {
                     let oil_id = oil_price[j].oil_id;
                     let price = oil_price[j].price;
-                    console.log("++++++++++++++++++++++++++++");
-                    let oilInfo = await queryOilById(parseInt(oil_id));
+                    let oilInfo = await oilModel.queryOilById(parseInt(oil_id));
                     if (!oilInfo || oilInfo.length != 1 ){
                         continue;
                     }
 
                     let oil_name = oilInfo[0].name; //油品ID对应的名字
                     for (let m=0; m<discountColumn.length; m++) {
-                        let oilColumn = discountColumn[m].column_name;
-                        let m = oilColumn.split("_");
-                        let oil_column_name = m[m.length-1];
-                        console.log("oil_column_name....."+oil_column_name+"=="+oil_name);
+                        let oilColumn = discountColumn[m].COLUMN_NAME;
+                        let oilM = oilColumn.split("_");
+                        let oil_column_name = oilM[oilM.length-1];
                         //油品名字匹配
                         if (oil_name.indexOf(oil_column_name) != -1) {
-                            row[oil_column_name] = price;
+                            row[oilColumn] = price;
                         } else {
                             continue;
                         }
@@ -98,7 +108,7 @@ router.post('/add', async(ctx, next) => {
                 }
                 discountRow.push(row);
             }
-            console.log(discountRow);
+            
             let ret = await discountModel.addDiscountRule(discountRow);
             ctx.body = {
                 status : 0,
@@ -110,6 +120,7 @@ router.post('/add', async(ctx, next) => {
                 status : 10,
                 msg : "其他优惠类型定制中."
             }
+            return ;
         }
 
     } catch (error) {
@@ -119,5 +130,192 @@ router.post('/add', async(ctx, next) => {
         }
     }
 })
+
+//修改优惠信息
+router.put('/upd/:id', async(ctx, next) =>{
+    try {
+        let { station_id, discount_type, begin_time, end_time, oil_price, 
+              discount_days, amount_start} = ctx.request.body;
+        let id = ctx.params.id
+
+        if ((!id) || (id == "")) {
+            ctx.body = {
+                status : 3,
+                msg : "传入参数必须有列表ID和优惠类型 。"
+            }
+            return ;
+        }
+        
+        id = parseInt(id);
+        let discountRuleInfo = await discountModel.queryDiscountRuleById(id);
+        if (!discountRuleInfo || (discountRuleInfo.length !=1)){
+            ctx.body = {
+                status : 5,
+                msg : "传入的id没有对应的记录."
+            }
+            return ;
+        }
+
+        //优惠类型1：设定各个油品的油价优惠价,有效天数，优惠开始结束时间
+        if (discount_type && (parseInt(discount_type) ==1)){
+            discount_type = parseInt(discount_type); 
+            let params = {station_id, discount_type, begin_time,
+                end_time, oil_price, discount_days, amount_start};
+
+            if ((commonUtil.reqParamsIsNull(params) || 
+                (!commonUtil.isJsonString(oil_price)) )) {
+                    ctx.body = {
+                        status : 2,
+                        msg : "传入参数错误."
+                    }
+                return ;
+            }
+
+            let begin_time_stamp = new Date(begin_time).getTime();
+            let end_time_stamp = new Date(end_time).getTime();
+            if ((!begin_time_stamp) || (!end_time_stamp) || 
+                (begin_time_stamp > end_time_stamp)) {
+                    ctx.body = {
+                        status : 7,
+                        msg : "开始时间不能大于结束时间。"
+                    }
+            }
+
+            if (parseInt(station_id)!=discountRuleInfo[0].station_id){
+                ctx.body = {
+                    status : 6,
+                    msg : "传入的油站ID与原来的不符."
+                }
+                return ;
+            }
+
+            oil_price = JSON.parse(oil_price);
+            let discountColumn = await discountModel.queryColumnFromDiscount();
+            if ((!discountColumn) || (discountColumn.length ==0)){
+                ctx.body = {
+                    status : 4,
+                    msg : "数据库存储字段已变更，联系开发人员修改."
+                }
+                return ;
+            }
+            console.log("=========")
+            let row = {};
+            row["discount_type"] = discount_type;
+            row["station_id"] = parseInt(station_id);
+            row["amount_start"] = parseInt(amount_start);
+            row["discount_date_start"] = begin_time;
+            row["discount_date_end"] = end_time;
+            row["discount_days"] = parseInt(discount_days);
+            for (let j=0; j<oil_price.length; j++) {
+                let oil_id = oil_price[j].oil_id;
+                let price = oil_price[j].price;
+                let oilInfo = await oilModel.queryOilById(parseInt(oil_id));
+                if (!oilInfo || oilInfo.length != 1 ){
+                    continue;
+                }
+
+                let oil_name = oilInfo[0].name; //油品ID对应的名字
+                for (let m=0; m<discountColumn.length; m++) {
+                    let oilColumn = discountColumn[m].COLUMN_NAME;
+                    let oilM = oilColumn.split("_");
+                    let oil_column_name = oilM[oilM.length-1];
+                    //油品名字匹配
+                    if (oil_name.indexOf(oil_column_name) != -1) {
+                        row[oilColumn] = price;
+                    } else {
+                        continue;
+                    }
+                }
+            }
+        
+            let ret = await discountModel.updDiscountRuleById(id,row);
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : ret
+            }
+        } else {
+            ctx.body = {
+                status : 10,
+                msg : "其他优惠类型定制中."
+            }
+            return ;
+        }
+
+    } catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
+})
+
+//删除
+router.delete('/del', async(ctx, next)=> {
+    try {
+        let {ids} = ctx.request.body
+        if ((!ids) || (!commonUtil.isJsonString(ids))){
+            ctx.body = {
+                status : 2,
+                msg : "传入参数错误"
+            }
+            return ;
+        }
+
+        ids = JSON.parse(ids);
+        let ret = await discountModel.delDiscountRule(ids);
+         ctx.body = {
+             status : 0,
+             msg : "success",
+             data : ret
+         }
+        
+    } catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误"
+        }
+    }
+})
+
+//初始化页面，分页
+router.get('/', async(ctx, next)=> {
+    try {
+        let {province_id, station_id, begin_time, end_time, page_num ,num} = ctx.query;
+
+        num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
+        page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
+
+        let options = {};
+        options["province_id"] = province_id
+        options["station_id"] = station_id
+        options["begin_time"] = begin_time
+        options["end_time"] = end_time
+        options["page_num"] = page_num
+        options["num"] = num
+
+        let discountRuleList = await discountModel.queryDiscountRuleList(options);
+        options.num = 0;
+        let discountCnt = await discountModel.queryDiscountRuleList(options)
+
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : {
+                discount_rule_list : discountRuleList,
+                discount_rule_cnt : discountCnt.length
+            }
+        }
+
+    } catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误"
+        }
+    }
+})
+
+//优惠文案
+
 
 module.exports = router
