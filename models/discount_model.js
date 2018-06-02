@@ -7,7 +7,7 @@ const MysqlModel = require('./server.mysql.model')
 const Station = MysqlModel.get('Station');
 const OilInfo = MysqlModel.get('OilInfo');
 const Discount = MysqlModel.get('Discount');
-const Region = MysqlModel.get('Region');
+const DiscountDoc = MysqlModel.get('DiscountDoc');
 const Oil = MysqlModel.get('Oil');
 const OilFlow = MysqlModel.get('OilFlow');
 const DiscountRule = MysqlModel.get('DiscountRule');
@@ -118,6 +118,103 @@ class DiscountModel {
             page:(page_num*num), num:num},type: Sequelize.QueryTypes.SELECT});
         return ret;
     };
+
+    //新增优惠规则文案
+    async addDiscountDoc(options){
+        let ret = await DiscountDoc.create(options)
+        return ret;
+    };
+
+    //根据标题查找文案
+    async queryDiscountDocByTitle(title){
+        let ret = await DiscountDoc.findAll({
+            where : {
+                title  : title
+            }
+        })
+        return ret;
+    }
+
+
+    async queryDiscountDoc(options, page_num ,num){
+        let id = parseInt(options.id)
+        let title = options.title
+        let begin_time = options.begin_time
+        let end_time = options.end_time
+        let sql = ""
+        
+        if (id && (id != "")) {
+            sql = sql + " and id = :id ";
+        }
+
+        if (title && (title != "")) {
+            sql = sql + " and title like :title ";
+        }
+
+        if (begin_time && (begin_time != "")) {
+            sql = sql + " and created_at >= begin_time ";
+        }
+
+        if (end_time && (end_time != "")) {
+            sql = sql + " and created_at <= end_time ";
+        }
+
+        let sql_main = "select id,title,content, " +
+            "date_format(created_at,'%Y-%m-%d %H:%i:%s') as created_time ,"+
+            "date_format(updated_at,'%Y-%m-%d %H:%i:%s') as updated_time "+
+            " from discount_docs  "+
+            " where deleted_at is null " + sql;
+        if ((page_num>=0) && (num>0)) {
+            sql_main = sql_main + " limit :page, :num "
+        }
+
+        let ret = await Conn.query(sql_main,{
+            replacements: {id:id,title:'%'+title+'%',begin_time:begin_time, 
+                    end_time:end_time,page:(page_num*num), num:num},
+                    type: Sequelize.QueryTypes.SELECT});
+    
+        /*
+        let ret = await DiscountDoc.findAll({
+            where : {
+                id : id,
+                title : {[Op.like] : "%"+title+"%"},
+                created_at : {[Op.gte]:begin_time},
+                created_at : {[Op.lte]:begin_time}
+            },
+        })
+
+        if ((page_num>=0) && (num>0)) {
+            ret = await DiscountDoc.findAll({
+                where : {
+                    id : id,
+                    title : {[Op.like] : "%"+title+"%"},
+                    created_at : {[Op.gte]:begin_time},
+                    created_at : {[Op.lte]:begin_time}
+                },
+                offset : page_num*num,
+                limit : num
+            })
+        }
+        */
+        return ret;
+    };
+
+    //删除优惠规则文案
+    async delDiscountRuleDoc(ids){
+        let ret = await DiscountDoc.destroy(
+            {
+                where: {
+                    id:{
+                        [Op.in]:ids
+                    }
+                }
+            }
+        )
+        return ret ;
+    };
+
+
+
 }
 
 let discountModel = new DiscountModel;

@@ -4,6 +4,7 @@
  */
 const mSequelize = require('../db/mysql_connection')
 const DataTypes = require('sequelize');
+const moment = require('moment');
 
 
 //以下为：用户 E - R 图
@@ -239,6 +240,28 @@ let OilInfo = mSequelize.define('oil_info', {
     paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
 });
 
+//优惠文案
+let DiscountDoc = mSequelize.define('discount_doc', {
+    id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
+    title: DataTypes.STRING,  //标题
+    content: DataTypes.TEXT('long'),  //内容
+}, {
+    created_at: {
+        type: DataTypes.DATE,
+        get() {
+          return moment(this.getDataValue('created_at')).format('YYYY-MM-DD HH:mm:ss');
+        }
+      },
+      updated_at: {
+        type: DataTypes.DATE,
+        get() {
+          return moment(this.getDataValue('updated_at')).format('YYYY-MM-DD HH:mm:ss');
+        }
+      },
+    timestamps: true,//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
+    underscored: true,//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
+    paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
+});
 
 Station.hasMany(Oil, {foreignKey: 'station_id', targetKey: 'id'});
 Station.hasMany(DiscountRule, {foreignKey: 'station_id', targetKey: 'id'});
@@ -280,6 +303,7 @@ module.exports = new Map([
     , ['OilInfo', OilInfo]  //油品表
     , ['Region', Region]  //国家省份城市表
     , ['OilGum', OilGum]   //油枪油品对照
+    , ['DiscountDoc',DiscountDoc] //优惠文案
 ]);
 
 

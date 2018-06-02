@@ -112,8 +112,7 @@ router.post('/add', async(ctx, next) => {
             let ret = await discountModel.addDiscountRule(discountRow);
             ctx.body = {
                 status : 0,
-                msg : "success",
-                data : ret
+                msg : "success"
             }
         } else {
             ctx.body = {
@@ -316,6 +315,106 @@ router.get('/', async(ctx, next)=> {
 })
 
 //优惠文案
+router.post('/doc/add', async(ctx, next) => {
+    try {
+        let {title,content} = ctx.request.body
+        let params = {title, content}
+        if (commonUtil.reqParamsIsNull(params)){
+            ctx.body = {
+                status : 2,
+                msg : "传入参数错误。"
+            }
+            return ;
+        }
 
+        let discountDoc = await discountModel.queryDiscountDocByTitle(title)
+        if (discountDoc && discountDoc.length !=0) {
+            ctx.body = {
+                status : 3,
+                msg : "已经存在此标题的文案，请更换标题或检查是否重复。"
+            }
+            return ;
+        }
+
+        let options = {};
+        options.title = title;
+        options.content = content;
+        let ret = await discountModel.addDiscountDoc(options)
+        ctx.body = {
+            status : 0,
+            msg : "success"
+        }
+    } catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "内部程序错误."
+        }
+    }
+})
+
+router.get('/doc', async(ctx, next)=>{
+    try {
+        let {id, title,begin_time, end_time, page_num, num} = ctx.query;
+
+        num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
+        page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
+
+        let options ={}
+        options.id = id;
+        options.title = title;
+        options.begin_time = begin_time;
+        options.end_time = end_time;
+    
+        let discountDoc = await discountModel.queryDiscountDoc(options,page_num,num)
+        let docCnt = await discountModel.queryDiscountDoc(options,page_num,0)
+
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : {
+                discount_doc_list : discountDoc,
+                discount_doc_cnt : docCnt.length
+            }
+        }
+    } catch(error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
+})
+
+//删除
+router.delete('/doc/del', async(ctx, next)=> {
+    console.log("=======")
+    try {
+        console.log("=======")
+        let {ids} = ctx.request.body
+        
+        console.log("=======")
+        if ((!ids) || (!commonUtil.isJsonString(ids))){
+            ctx.body = {
+                status : 2,
+                msg : "传入参数错误"
+            }
+            return ;
+        }
+        console.log("=======")
+        ids = JSON.parse(ids);
+       
+        let ret = await discountModel.delDiscountRuleDoc(ids);
+         ctx.body = {
+             status : 0,
+             msg : "success",
+             data : ret
+         }
+        
+    } catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误"
+        }
+    }
+})
 
 module.exports = router
