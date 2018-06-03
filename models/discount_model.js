@@ -107,7 +107,7 @@ class DiscountModel {
                 "  FROM "+
                 "   stations sta, discount_rules dr "+
                 "  WHERE sta.id = dr.station_id" + 
-                "    and dr.deleted_at is null and sta.deleted is null " + sql;
+                "    and dr.deleted_at is null and sta.deleted_at is null " + sql;
         if ((page_num>=0) && (num>0)) {
             sql_main = sql_main + " limit :page, :num";
         }
