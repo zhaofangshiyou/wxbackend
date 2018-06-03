@@ -78,6 +78,11 @@ router.post('/add', async(ctx, next) => {
             let discountRow = [];
             for (let i=0; i<station_ids.length; i++) {
                 let station_id = station_ids[i];
+                let staInfo = await stationModel.queryStationById(station_id);
+                if (!staInfo || (staInfo.length !=1)){
+                    continue
+                };
+
                 let row = {};
                 row["discount_type"] = discount_type;
                 row["station_id"] = parseInt(station_id);
@@ -178,6 +183,7 @@ router.put('/upd/:id', async(ctx, next) =>{
                         status : 7,
                         msg : "开始时间不能大于结束时间。"
                     }
+                    return ;
             }
 
             if (parseInt(station_id)!=discountRuleInfo[0].station_id){
@@ -197,7 +203,7 @@ router.put('/upd/:id', async(ctx, next) =>{
                 }
                 return ;
             }
-            console.log("=========")
+         
             let row = {};
             row["discount_type"] = discount_type;
             row["station_id"] = parseInt(station_id);
