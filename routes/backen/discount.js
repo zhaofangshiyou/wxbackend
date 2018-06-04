@@ -104,7 +104,7 @@ router.post('/add', async(ctx, next) => {
                         let oilM = oilColumn.split("_");
                         let oil_column_name = oilM[oilM.length-1];
                         //油品名字匹配
-                        if (oil_name.indexOf(oil_column_name) != -1) {
+                        if (oil_name.replace(/[^0-9]/ig,"") == (oil_column_name)) {
                             row[oilColumn] = price;
                         } else {
                             continue;
@@ -225,7 +225,7 @@ router.put('/upd/:id', async(ctx, next) =>{
                     let oilM = oilColumn.split("_");
                     let oil_column_name = oilM[oilM.length-1];
                     //油品名字匹配
-                    if (oil_name.indexOf(oil_column_name) != -1) {
+                    if (oil_name.replace(/[^0-9]/ig,"") == (oil_column_name)) {
                         row[oilColumn] = price;
                     } else {
                         continue;
