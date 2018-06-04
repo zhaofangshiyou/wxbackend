@@ -47,6 +47,8 @@ let Card = mSequelize.define('card', {//卡表
     , unit_card_type: DataTypes.STRING  //卡类型
     , parent_id: DataTypes.BIGINT(11)      //主卡ID
     , station_id: DataTypes.STRING      //办卡油站
+    , status: DataTypes.STRING      //卡的可用状态 0 - 可用 1 - 不可用
+    , refund_status: DataTypes.STRING      //申请退款的状态 0 - 已退款 1 - 未退款
 
 
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
