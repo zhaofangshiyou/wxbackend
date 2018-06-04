@@ -19,6 +19,7 @@ let User = mSequelize.define('user', {//用户表
     , car_type: DataTypes.STRING  //车型号
     , welfare_amount: DataTypes.DECIMAL(10, 2)     //公益金
     , total_vol: DataTypes.DECIMAL  //累计加油*
+    , score: DataTypes.INTEGER  //积分
     // , totalVol: DataTypes.DECIMAL  //累计加油
     , destroy_at: DataTypes.STRING      //注销时间
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
@@ -43,7 +44,6 @@ let Card = mSequelize.define('card', {//卡表
     , password: DataTypes.STRING      //办卡油站
     , person_balance: DataTypes.DECIMAL(10, 2)       //个人余额
     , company_balance: DataTypes.DECIMAL(10, 2)   //单位余额
-    , score: DataTypes.INTEGER  //积分
     , unit_card_type: DataTypes.STRING  //卡类型
     , parent_id: DataTypes.BIGINT(11)      //主卡ID
     , station_id: DataTypes.STRING      //办卡油站
@@ -274,6 +274,7 @@ Region.hasMany(Oil, {foreignKey: 'province_id', targetKey: 'id'});
 
 OilFlow.sync();
 ChargeFlow.sync();
+// User.sync({force: true});
 // DiscountRule.sync({force: true});
 mSequelize.sync();
 // mSequelize.sync({force: true});//慎用，会清空数据库所有数据表,然后重新建表
@@ -295,87 +296,3 @@ module.exports = new Map([
 ]);
 
 
-//
-//
-// var One = mSequelize.define('one', {
-//     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
-//     name: Sequelize.STRING(100)
-// }, {
-//     timestamps: true
-// });
-//
-// var Two = mSequelize.define('two', {
-//     // id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
-//     name: Sequelize.STRING(100)
-//     , oneId: {type: DataTypes.BIGINT(11), field: 'one_id', allowNull: false, comment: '用户Id'}
-// }, {
-//     timestamps: false
-//     , indexes: [{
-//         // name: 'userAddress_userId',// tableName + field
-//         method: 'BTREE',
-//         fields: ['one_id']
-//     }]
-// });
-//
-//
-// One.hasMany(Two, {foreignKey: 'one_id', as: 'two'})
-//
-// var Tag = mSequelize.define('tag', {
-//     name: Sequelize.STRING
-// });
-//
-// var Product = mSequelize.define('product', {
-//     title: Sequelize.STRING
-// });
-//
-//
-// // Product.hasMany(Tag);
-//
-//
-// // Model
-// // var User = mSequelize.define('user', {
-// //     // id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
-// //     nickName: {
-// //         type: DataTypes.STRING,
-// //         defaultValue: "匿名"
-// //     },//昵称
-// //     stuNumber: DataTypes.STRING,//学号
-// //     password: DataTypes.STRING//密码
-// // }, {
-// //     timestamps: true
-// //     , indexes: [{
-// //         // name: 'userAddress_userId',// tableName + field
-// //         method: 'BTREE',
-// //         fields: ['stuNumber']
-// //     }]
-// // });
-//
-//
-// var Task = mSequelize.define('task', {
-//     // id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
-//     message: DataTypes.STRING
-//     , praise: DataTypes.INTEGER
-//     , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
-// }, {
-//     timestamps: true
-//     , indexes: [{
-//         // name: 'userAddress_userId',// tableName + field
-//         method: 'BTREE',
-//         fields: ['userId']
-//     }]
-// });
-//
-// var TaskComment = mSequelize.define('taskComment', {
-//     // id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
-//     message: DataTypes.STRING
-//     , creator: DataTypes.STRING
-//     , taskUser: DataTypes.STRING
-//     , taskId: {type: DataTypes.INTEGER, field: 'taskId', allowNull: false, comment: '任务Id'}
-// }, {
-//     timestamps: true
-//     , indexes: [{
-//         // name: 'userAddress_userId',// tableName + field
-//         method: 'BTREE',
-//         fields: ['taskId']
-//     }]
-// });
