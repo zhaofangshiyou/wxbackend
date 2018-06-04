@@ -40,7 +40,6 @@ let Card = mSequelize.define('card', {//卡表
     // , user_id: DataTypes.BIGINT(11)     //用户ID
     // , card_num: {type: DataTypes.INTEGER, autoIncrement: true}      //卡号*
     , card_prefix: DataTypes.INTEGER      //卡号*
-
     , password: DataTypes.STRING      //办卡油站
     , person_balance: DataTypes.DECIMAL(10, 2)       //个人余额
     , company_balance: DataTypes.DECIMAL(10, 2)   //单位余额
@@ -49,8 +48,6 @@ let Card = mSequelize.define('card', {//卡表
     , station_id: DataTypes.STRING      //办卡油站
     , status: DataTypes.STRING      //卡的可用状态 0 - 可用 1 - 不可用
     , refund_status: DataTypes.STRING      //申请退款的状态 0 - 已退款 1 - 未退款
-
-
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
@@ -253,6 +250,34 @@ let DiscountDoc = mSequelize.define('discount_doc', {
     paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
 });
 
+//退款表
+let Refund = mSequelize.define('refund', {
+    id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
+    card_id : DataTypes.BIGINT(11),  //卡id
+    money : DataTypes.DECIMAL(10, 2),  //退款金额
+    initiate_by : DataTypes.BIGINT(11),  //发起人id
+    confirm_by : DataTypes.BIGINT(11),  //确认人id
+}, {
+    timestamps: true,//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
+    underscored: true,//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
+    paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
+});
+
+//后台用户
+let BackendUser = mSequelize.define('backend_user', {
+    id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
+    name : DataTypes.STRING,  //用户名
+    password : DataTypes.STRING,  //退款金额
+    permissions : DataTypes.STRING,  //权限
+    role : DataTypes.STRING,  //角色
+    admin : DataTypes.INTEGER, //0不是管理员 ， 1管理员
+    dept : DataTypes.STRING, //用户所属部门
+}, {
+    timestamps: true,//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
+    underscored: true,//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
+    paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
+});
+
 Station.hasMany(Oil, {foreignKey: 'station_id', targetKey: 'id'});
 Station.hasMany(DiscountRule, {foreignKey: 'station_id', targetKey: 'id'});
 
@@ -295,6 +320,8 @@ module.exports = new Map([
     , ['Region', Region]  //国家省份城市表
     , ['OilGum', OilGum]   //油枪油品对照
     , ['DiscountDoc',DiscountDoc] //优惠文案
+    , ['Refund', Refund] //退款表
+    , ['BackendUser',BackendUser] //后台用户表
 ]);
 
 
