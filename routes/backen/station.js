@@ -12,10 +12,10 @@ const Oil = MysqlModel.get('Oil');
 const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const Region = MysqlModel.get('Region')
-const commonUtil = require('../utils/common')
+const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common')
 const request = require('request-promise-native');
 const xlsx = require('xlsx');
-const common = require('../utils/common');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
@@ -171,7 +171,6 @@ router.get('/site', async (ctx, next) => {
 })
 
 router.get('/excel', async (ctx, next) => {
-
     try {
         let filename = 'output';
         let {province, name} = ctx.query
@@ -190,13 +189,12 @@ router.get('/excel', async (ctx, next) => {
         })
         let _headers = ['id', 'name', 'avatar_url', 'longitude', 'latitude', 'address', 'oil_gum_nums', 'province', 'city', 'created_at', 'updated_at', 'deleted_at'];
         let _data = stations;
-        // console.log(stations)
-        let buf = await commonUtil.toExcelBuf(_headers, _data)
+        
+        let buf = await modelUtils.toExcelBuf(_headers, _data)
         ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
         ctx.set('Content-type', 'application/xlsx');
         ctx.body = buf
     } catch (error) {
-        console.log(error)
         ctx.body = {
             status: 1
             , msg : "程序内部错误"
