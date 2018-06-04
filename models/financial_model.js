@@ -361,29 +361,34 @@ class ConsumeModel {
 
         // 查找列表
         if (type == 1) {
-            sql_main = "select sta.province as province_name ,sta.name as station_name, " +
-                " sum(cf.money) as money ,sum(cf.poundage) as poundage ," +
-                "  sum(c.company_balance + c.person_balance) as deposit_money from " ;
+            sql_main = "select charge.province_name ,charge.station_name, " +
+                " charge.money ,charge.poundage ," +
+                "  c.deposit as deposit_money from " ;
             //查找总数
         } else {
-            sql_main = "select sum(cf.money) as money_total, sum(cf.poundage) as pondage_total, " +
-                "   sum(c.company_balance + c.person_balance) as deposit_money_total from ";
+            sql_main = "select sum(charge.money) as money_total, sum(charge.poundage) as pondage_total, " +
+                "   sum(c.deposit) as deposit_money_total from ";
         }
 
-        let sql_base = "  stations sta, charge_flows cf ,cards c  " +
+        let sql_base = "( select sta.province as province_name ,sta.name as station_name, " +
+            " sum(cf.money) as money ,sum(cf.poundage) as poundage ,sta.id " +
+            " from stations sta, charge_flows cf ,cards c  " +
             "  where sta.id = c.station_id  " +
             "      and cf.card_id = c.id  " +
             "      and c.id = cf.card_id  " +
             "      and c.deleted_at is null "+
             "      and sta.deleted_at is null "+
-            "      and cf.deleted_at is null  " + sql 
-        
-            
+            "      and cf.deleted_at is null  " + sql +
+            " group by sta.province,sta.name,sta.id ) charge " + 
+            " left join " + 
+            " (select station_id, sum(company_balance + person_balance) as deposit " +
+            "    from cards where deleted_at is null group by station_id) c "+
+            "  on c.station_id = charge.id "    
 
         sql_main = sql_main + sql_base
 
         if (type ==1) {
-            sql_main = sql_main + " group by sta.province,sta.name order by sta.province desc"
+            sql_main = sql_main + " order by charge.province_name desc"
         }
 
         if ((page_num >= 0) && (num > 0)) {
