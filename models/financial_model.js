@@ -227,6 +227,8 @@ class ConsumeModel {
             "  from stations sta, charge_flows cf ,cards c " +
             "  where sta.id = c.station_id " +
             "      and cf.card_id = c.id" +
+            "      and c.deleted_at is null "+
+            "      and sta.deleted_at is null "+
             "      and cf.deleted_at is null ";
         //查找总数
         } else {
@@ -235,6 +237,8 @@ class ConsumeModel {
                 "  from stations sta, charge_flows cf ,cards c " +
                 "  where sta.id = c.station_id " +
                 "      and cf.card_id = c.id " +
+                "      and c.deleted_at is null "+
+                "      and sta.deleted_at is null "+
                 "      and cf.deleted_at is null ";
         }
 
@@ -274,6 +278,7 @@ class ConsumeModel {
     };
 
     //充值汇总
+    /*
     async queryRechargeList(options, type){
         let province_id = options.province_id
         let station_id = options.station_id
@@ -311,6 +316,7 @@ class ConsumeModel {
             "      and c.id = cf.card_id  " +
             "      and cf.deleted_at is null  " + sql +
             "      group by sta.province,sta.name,sta.id  order by sta.province desc) charge ,  " +
+            
             " (select sta.id,  " +
             " sta.province as province_name,  " +
             "    sta.name as station_name,  " +
@@ -320,11 +326,64 @@ class ConsumeModel {
             "   and  of.deleted_at is null  " + sql +
             "group by sta.province,sta.name,sta.id order by sta.province desc ) consume  " +
             "where charge.id = consume.id ";
+            
 
         sql_main = sql_main + sql_base
 
         if (type ==1) {
             sql_main = sql_main + " order by charge.province_name desc"
+        }
+
+        if ((page_num >= 0) && (num > 0)) {
+            sql_main = sql_main + " limit :page, :num "
+        }
+
+        let ret = await Conn.query(sql_main,{replacements: {province_id:province_id, station_id:station_id,
+             page:(page_num*num), num:num}, type: Sequelize.QueryTypes.SELECT})
+
+        return ret;
+    };*/
+    async queryRechargeList(options, type){
+        let province_id = options.province_id
+        let station_id = options.station_id
+        let page_num = parseInt(options.page_num)
+        let num = parseInt(options.num)
+        let sql = ""
+        let sql_main = ""
+
+        if (province_id && (province_id != "")) {
+            sql = sql + " and sta.province_id = :province_id ";
+        }
+
+        if (station_id && (station_id != "")) {
+            sql = sql + " and sta.id = :station_id ";
+        }
+
+        // 查找列表
+        if (type == 1) {
+            sql_main = "select sta.province as province_name ,sta.name as station_name, " +
+                " sum(cf.money) as money ,sum(cf.poundage) as poundage ," +
+                "  sum(c.company_balance + c.person_balance) as deposit_money from " ;
+            //查找总数
+        } else {
+            sql_main = "select sum(cf.money) as money_total, sum(cf.poundage) as pondage_total, " +
+                "   sum(c.company_balance + c.person_balance) as deposit_money_total from ";
+        }
+
+        let sql_base = "  stations sta, charge_flows cf ,cards c  " +
+            "  where sta.id = c.station_id  " +
+            "      and cf.card_id = c.id  " +
+            "      and c.id = cf.card_id  " +
+            "      and c.deleted_at is null "+
+            "      and sta.deleted_at is null "+
+            "      and cf.deleted_at is null  " + sql 
+        
+            
+
+        sql_main = sql_main + sql_base
+
+        if (type ==1) {
+            sql_main = sql_main + " group by sta.province,sta.name order by sta.province desc"
         }
 
         if ((page_num >= 0) && (num > 0)) {
