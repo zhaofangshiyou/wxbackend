@@ -38,14 +38,25 @@ router.get('/', async (ctx, next) => {
         let cardCnt = await backendUserModel.queryUserCardList(card_no,page_num,0);
         
         for (let i=0; i<cardList.length; i++){
-            cardList[i]["refund_disable"] = false
+            cardList[i]["initiate_refund_disable"] = false
+            cardList[i]["confirm_refund_disable"] = false
             cardList[i]["cancel_disable"] = false
             let parent_id = cardList[i].parent_id
             let status = cardList[i].status
+            let refund_status = cardList[i].refund_status
+            //副卡不允许申请
             if (parent_id && parent_id != "") {
-                cardList[i]["refund_disable"] = true
+                cardList[i]["initiate_refund_disable"] = true
+            }
+            //退款申请中
+            if (refund_status && parseInt(refund_status) ==1) {
+                cardList[i]["initiate_refund_disable"] = true
             }
 
+            if (refund_status && parseInt(refund_status) !=1) {
+                cardList[i]["confirm_refund_disable"] = true
+            }
+            
             if (status && parseInt(status) == 1) {
                 cardList[i]["refund_disable"] = true
             } else {
