@@ -38,27 +38,30 @@ router.get('/', async (ctx, next) => {
         let cardCnt = await backendUserModel.queryUserCardList(card_no,page_num,0);
         
         for (let i=0; i<cardList.length; i++){
-            cardList[i]["initiate_refund_disable"] = false
-            cardList[i]["confirm_refund_disable"] = false
-            cardList[i]["cancel_disable"] = false
+            cardList[i]["initiate_refund_disable"] = false  //发起退款
+            cardList[i]["confirm_refund_disable"] = false //确认退款
+            cardList[i]["cancel_disable"] = false  //销户
             let parent_id = cardList[i].parent_id
             let status = cardList[i].status
             let refund_status = cardList[i].refund_status
             //副卡不允许申请
             if (parent_id && parent_id != "") {
                 cardList[i]["initiate_refund_disable"] = true
+                cardList[i]["confirm_refund_disable"] = true
             }
             //退款申请中
             if (refund_status && parseInt(refund_status) ==1) {
                 cardList[i]["initiate_refund_disable"] = true
             }
-
+            //非退款申请状态
             if (refund_status && parseInt(refund_status) !=1) {
                 cardList[i]["confirm_refund_disable"] = true
             }
-            
+            //销户后
             if (status && parseInt(status) == 1) {
-                cardList[i]["refund_disable"] = true
+                cardList[i]["cancel_disable"] = true
+                cardList[i]["initiate_refund_disable"] = false
+                cardList[i]["confirm_refund_disable"] = false
             } else {
                 continue;
             }
@@ -101,11 +104,12 @@ router.delete('/card/del', async (ctx, next) => {
             if (!cardInfo || cardInfo.length !=1){
                 continue;
             }
-            
+
             let isMainCard = await backendUserModel.querySubCardById(id);
            
             //主卡，则把底下副卡一起注销
             if (isMainCard && isMainCard.length >0) {
+                delId.push(parseInt(id))
                 for (let j=0; j<isMainCard.length; j++) {
                     delId.push(parseInt(isMainCard[j].id))
                 }
@@ -116,9 +120,10 @@ router.delete('/card/del', async (ctx, next) => {
         }
 
         let now = new Date()
-        now = now.toLocaleString
+        now = now.toLocaleString()
+
         if (delId && delId.length >0) {
-            let ret = await delCards(delId,now);
+            let ret = await backendUserModel.delCards(delId,now);
         }
 
         ctx.body = {
