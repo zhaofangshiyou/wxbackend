@@ -60,8 +60,8 @@ router.get('/', async (ctx, next) => {
             //销户后
             if (status && parseInt(status) == 1) {
                 cardList[i]["cancel_disable"] = true
-                cardList[i]["initiate_refund_disable"] = false
-                cardList[i]["confirm_refund_disable"] = false
+                cardList[i]["initiate_refund_disable"] = true
+                cardList[i]["confirm_refund_disable"] = true
             } else {
                 continue;
             }
