@@ -39,8 +39,14 @@ router.get('/', async (ctx, next) => {
         
         for (let i=0; i<cardList.length; i++){
             cardList[i]["refund_disable"] = false
+            cardList[i]["cancel_disable"] = false
             let parent_id = cardList[i].parent_id
+            let status = cardList[i].status
             if (parent_id && parent_id != "") {
+                cardList[i]["refund_disable"] = true
+            }
+
+            if (status && parseInt(status) == 1) {
                 cardList[i]["refund_disable"] = true
             } else {
                 continue;
@@ -49,7 +55,8 @@ router.get('/', async (ctx, next) => {
 
         ctx.body = {
             status : 0,
-            msg : {
+            msg : "success",
+            data : {
                 card_list : cardList,
                 card_list_cnt : cardCnt.length
             }
@@ -97,8 +104,10 @@ router.delete('/card/del', async (ctx, next) => {
             }
         }
 
+        let now = new Date()
+        now = now.toLocaleString
         if (delId && delId.length >0) {
-            let ret = await delCards(delId);
+            let ret = await delCards(delId,now);
         }
 
         ctx.body = {

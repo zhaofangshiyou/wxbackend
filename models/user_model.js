@@ -60,8 +60,7 @@ class BackendUserModel {
                         "    (CASE status WHEN '1' THEN DATE_FORMAT(c.updated_at, '%Y-%m-%d %H:%i:%s') "+
                         "    ELSE '-' END) AS closed_time,"+
                         "    DATE_FORMAT(c.updated_at, '%Y-%m-%d %H:%i:%s') AS operated_time "+
-                        "FROM cards c, users u WHERE u.id = c.user_id " +
-                        " and u.deleted_at is null and c.deleted_at is null" + sql + ") a " +
+                        "FROM cards c, users u WHERE u.id = c.user_id " + sql + ") a " +
                     " LEFT JOIN "+
                         "    refunds b ON a.id = b.card_id "+
                     " LEFT JOIN "   +  
@@ -96,9 +95,11 @@ class BackendUserModel {
         return ret ;
     }
     //注销卡号
-    async delCards(id){
-        let ret = await Card.destroy({
-            where :{
+    async delCards(id,now){
+        let ret = await Card.update(
+            {status : 1,
+             deleted_at : now},
+            {where :{
                 id : {[Op.in]:id}
             }
         })
