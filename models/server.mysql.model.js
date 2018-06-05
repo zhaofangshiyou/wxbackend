@@ -257,6 +257,7 @@ let Refund = mSequelize.define('refund', {
     money : DataTypes.DECIMAL(10, 2),  //退款金额
     initiate_by : DataTypes.BIGINT(11),  //发起人id
     confirm_by : DataTypes.BIGINT(11),  //确认人id
+    status : DataTypes.INTEGER  //退款进度 1申请中  2已完成
 }, {
     timestamps: true,//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
     underscored: true,//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
