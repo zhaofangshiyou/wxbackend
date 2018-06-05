@@ -38,7 +38,7 @@ class InvoiceModel {
                 " from oil_flows of, stations sta "+
                 " where of.station_id = sta.id " +  
                 "   and of.deleted_at is null " + sql +
-                " ) sta_of left join users u on sta_of.operator = u.id " ;
+                " ) sta_of left join backend_users u on sta_of.operator = u.id " ;
 
         if ((page_num >=0) && (num >0)) {
             sql_main = sql_main + "  limit :page, :num"
