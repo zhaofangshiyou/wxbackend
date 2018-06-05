@@ -39,13 +39,13 @@ let Card = mSequelize.define('card', {//卡表
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     // , user_id: DataTypes.BIGINT(11)     //用户ID
     // , card_num: {type: DataTypes.INTEGER, autoIncrement: true}      //卡号*
-    , card_prefix: DataTypes.INTEGER      //卡号*
+    , card_prefix: DataTypes.INTEGER      //卡号前缀*
 
     , password: DataTypes.STRING      //办卡油站
     , person_balance: DataTypes.DECIMAL(10, 2)       //个人余额
     , company_balance: DataTypes.DECIMAL(10, 2)   //单位余额
     , unit_card_type: DataTypes.STRING  //卡类型
-    , parent_id: DataTypes.BIGINT(11)      //主卡ID
+    , parent_id: DataTypes.BIGINT(11)      //主卡IDå
     , station_id: DataTypes.STRING      //办卡油站
     , status: DataTypes.STRING      //卡的可用状态 0 - 可用 1 - 不可用
     , refund_status: DataTypes.STRING      //申请退款的状态 0 - 已退款 1 - 未退款
@@ -152,6 +152,8 @@ let Station = mSequelize.define('station', {//油站表
     , city: DataTypes.STRING   //城市
     , type: {type: DataTypes.INTEGER, defaultValue: 1}  //油站类型  1自有 2共享
     , province_id: DataTypes.BIGINT(11)  //对应省份或城市ID,region_id
+    , card_prefix: DataTypes.INTEGER      //卡号前缀，每个油站有一个特定的卡号前缀
+
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
     , underscored: true//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
