@@ -53,9 +53,9 @@ class StationModel {
 
         let sql = " select sta.id, sta.name, sta.province, sta.oil_gum_nums, sta.province_id, sta.city,sta.type, " +
             " 1000+sta.id as station_id, group_concat(oi.name separator '、') as oil_list" +
-            " from oil_infos oi, stations sta " +
-            " where find_in_set(oi.id, sta.oil_list) " +
-            "   and oi.deleted_at is null" +
+            " from  stations sta  left join oil_infos oi " +
+            " on find_in_set(oi.id, sta.oil_list) " +
+            "  where oi.deleted_at is null" +
             "   and sta.deleted_at is null ";
         if (station_id && station_id > 0) {
             sql = sql + " and sta.id = :id "
