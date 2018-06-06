@@ -1,5 +1,9 @@
-/* create by miah on 2018/04/08
+/* create by miah on 2018/05/28
 * 优惠管理
+
+修改于 2018/06/06
+1.优惠文案只允许有一条，标题内容不限
+2.一旦创建只用于更新、查看
 */
 const router = require('koa-router')();
 const config = require('../../config/config')
@@ -333,11 +337,13 @@ router.post('/doc/add', async(ctx, next) => {
             return ;
         }
 
-        let discountDoc = await discountModel.queryDiscountDocByTitle(title)
+        //let discountDoc = await discountModel.queryDiscountDocByTitle(title)
+        let discountDoc = await discountModel.queryDiscountDoc();
         if (discountDoc && discountDoc.length !=0) {
             ctx.body = {
                 status : 3,
-                msg : "已经存在此标题的文案，请更换标题或检查是否重复。"
+                //msg : "已经存在此标题的文案，请更换标题或检查是否重复。"
+                msg : "已经存在优惠文案."
             }
             return ;
         }
@@ -358,6 +364,45 @@ router.post('/doc/add', async(ctx, next) => {
     }
 })
 
+router.put('/doc/upd/:id', async(ctx, next)=>{
+    try {
+        let id = ctx.params.id 
+        let {title,content} = ctx.request.body
+        let params = {id, title, content}
+        if (commonUtil.reqParamsIsNull(params)){
+            ctx.body = {
+                status : 2,
+                msg : "传入参数错误。"
+            }
+            return ;
+        }
+
+        id = parseInt(id);
+        let discountDoc = await discountModel.queryDiscountDocById(id);
+        if (!discountDoc || discountDoc.length != 1) {
+            ctx.body = {
+                status : 3,
+                msg : "传入ID不存在."
+            }
+        }
+
+        let options ={};
+        options.title = title
+        options.content = content
+
+        let ret = await discountModel.updateDiscountDoc(id,options)
+        ctx.body = {
+            status : 0,
+            msg : "success"
+        }
+    } catch(error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
+})
+
 router.get('/doc', async(ctx, next)=>{
     try {
         let {id, title,begin_time, end_time, page_num, num} = ctx.query;
@@ -371,7 +416,8 @@ router.get('/doc', async(ctx, next)=>{
         options.begin_time = begin_time;
         options.end_time = end_time;
     
-        let discountDoc = await discountModel.queryDiscountDoc(options,page_num,num)
+        //let discountDoc = await discountModel.queryDiscountDoc(options,page_num,num)
+        let discountDoc = await discountModel.queryDiscountDoc(options,0,1)
         let docCnt = await discountModel.queryDiscountDoc(options,page_num,0)
 
         ctx.body = {

@@ -214,8 +214,31 @@ class DiscountModel {
         return ret ;
     };
 
+    //查询优惠文案
+    async queryDiscountDoc(){
+        let ret = await DiscountDoc.findAll()
+        return ret;
+    };
 
+    //修改优惠文案
+    async updateDiscountDoc(id,options){
+        let ret = await DiscountDoc.update(
+            options,
+            {where : {
+                id:id
+            }
+        })
+        return ret ;
+    };
 
+    //根据ID查询优惠文案
+    async queryDiscountDocById(id){
+        let ret = await DiscountDoc.findAll({
+            where : {id :id },
+            limit : 1
+        })
+        return ret;
+    };
 }
 
 let discountModel = new DiscountModel;
