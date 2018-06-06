@@ -40,7 +40,7 @@ router.use(function (ctx, next) {
 //初始化页面、分页
 router.get('/', async (ctx, next) => {
     try {
-        let {province_id, id, page_num, num} = ctx.query;
+        let {act, province_id, id, page_num, num} = ctx.query;
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -128,10 +128,29 @@ router.get('/', async (ctx, next) => {
         data["province_list"] = proList;
         data["station_num"] = station_num;
         data["station_list"] = stationList;
-        ctx.body = {
-            status: 0
-            , msg: "success"
-            , data: data
+
+        if (act && act == "export") {
+            let filename = 'station_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            let sts = await stationModel.queryStationList(province_id, id, page_num, 0)
+            if (sts && sts.length >0) {
+                for (let k in sts[0]) {
+                   headers.push(k)    
+                } 
+                data = sts 
+            }
+     
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status: 0
+                , msg: "success"
+                , data: data
+            }
         }
     } catch (error) {
         ctx.body = {
@@ -172,7 +191,7 @@ router.get('/site', async (ctx, next) => {
 
 router.get('/excel', async (ctx, next) => {
     try {
-        let filename = 'output';
+        let filename = 'station_list_' + (new Date().toLocaleDateString());
         let {province, name} = ctx.query
         console.log("==> get")
         let options = {}
