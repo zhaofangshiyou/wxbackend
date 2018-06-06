@@ -145,6 +145,30 @@ class BackendUserModel {
         )
         return ret1;
     };
+    //用户消费明细
+    async queryUserConsume(card_id,page_num,num){
+        let sql = " select concat(c.card_prefix,LPAD(c.id,8,0)) as card_no, "+
+                  "     u.name, u.open_id, sta.name as station_name, of.vol, of.money,"+
+                  "     date_format(of.created_at,'%Y-%m-%d %H:%i:%s') as consume_time,"+
+                  "     of.pay_channel as pay_type, "+
+                  "     (case of.pay_channel when 1 then '个人卡' when 2 then '单位卡' "+
+                  "      when 3 then '微信支付' end) as pay_channel "+
+                  "  from cards c, users u, oil_flows of, stations sta "+
+                  " where c.id = of.card_id and of.station_id = sta.id and c.user_id = u.id "
+    
+        if (card_id && card_id != 0) {
+            sql = sql + " and (c.id = :id or c.parent_id = :card_id) ";
+        }
+
+        if((page_num>=0) && (num>0)) {
+            sql = sql + " limit :page, :num";
+        }
+
+        let ret = await Conn.query(sql,{replacements:{id:card_id, page:page_num*num,
+            card_id:card_id,num:num},type: Sequelize.QueryTypes.SELECT});
+
+        return ret ;
+    };
 }
 
 let backendUserModel = new BackendUserModel;

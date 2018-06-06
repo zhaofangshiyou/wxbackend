@@ -24,7 +24,36 @@ router.use(function (ctx, next) {
 });
 
 //用户消费明细
+router.get('/consume/detail', async (ctx, next) => {
+    try {
+        let {card_no, page_num, num} = ctx.query;
 
+        num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
+        page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
+        
+        let card_id = 0;
+        if (card_no && card_no != "") {
+            card_id = parseInt(card_no.slice(4));
+        }
+
+        let consumeList = await backendUserModel.queryUserConsume(card_id,page_num,num);
+        let consumeCnt = await backendUserModel.queryUserConsume(card_id,page_num,0)
+
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : {
+                consume_list : consumeList,
+                consume_list_cnt : consumeCnt.length
+            }
+        }
+    }catch (error) {
+        ctx.body = {
+            status : 1,
+            msg : "程序内部错误."
+        }
+    }
+})
 
 //初始化列表
 router.get('/', async (ctx, next) => {
