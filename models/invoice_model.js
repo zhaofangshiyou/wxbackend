@@ -63,7 +63,7 @@ class InvoiceModel {
 
     async addInvoice(cc_flow_id,operator){
         let ret = await OilFlow.update({
-                is_invoicing : 1,
+                is_invoicing : 0,
                 operator : operator,
                 oil_id : operator
             },
