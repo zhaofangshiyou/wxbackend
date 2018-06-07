@@ -12,6 +12,7 @@ const invoiceModel = require('../../models/invoice_model');
 const userModel = require('../../models/user_model');
 const commonUtil = require('../utils/common');
 const modelUtils = require('../../models/utils/common');
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen`)
 
@@ -41,11 +42,23 @@ router.get('/invoice', async (ctx, next) => {
             let filename = 'invoice_list_' + (new Date().toLocaleDateString());
             let headers = [];
             let data = [];
+            let mvParam = ["is_invoicing","operator"]
             if (invoiceCnt && invoiceCnt.length >0) {
                 for (let k in invoiceCnt[0]) {
-                    headers.push(k)     
+                    if (commonUtil.strInArray(k,mvParam)){
+                        continue;
+                    } else {
+                        headers.push(k)     
+                    }
                 } 
                 data = invoiceCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let invoiceMap = ExcelMap.invoice()
+                    headers = commonUtil.getExcelHeader(headers,invoiceMap)
+                    data = commonUtil.getExcelData(invoiceMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)

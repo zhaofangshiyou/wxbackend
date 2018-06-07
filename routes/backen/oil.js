@@ -10,6 +10,7 @@ const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const commonUtil = require('../utils/common');
 const modelUtils = require('../../models/utils/common')
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen/oil`)
 
@@ -277,6 +278,13 @@ router.get('/gum', async (ctx, next) => {
                     }
                 } 
                 data = oilNum 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let oilGumMap = ExcelMap.oilGum()
+                    headers = commonUtil.getExcelHeader(headers,oilGumMap)
+                    data = commonUtil.getExcelData(oilGumMap,data) 
+                }
             }
 
             let buf = await modelUtils.toExcelBuf(headers, data)

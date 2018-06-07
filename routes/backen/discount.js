@@ -14,6 +14,7 @@ const stationModel = require('../../models/station_model');
 const discountModel = require('../../models/discount_model');
 const commonUtil = require('../utils/common');
 const modelUtils = require('../../models/utils/common')
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen/discount`)
 
@@ -313,7 +314,7 @@ router.get('/', async(ctx, next)=> {
             let headers = [];
             let data = [];
             let mvParam = ["province_id","id","discount_type","created_at","updated_at",
-                "discount_date_start", "discount_date_end", "deleted_at"]
+                "discount_date_start", "discount_date_end", "deleted_at","station_id"]
             if (discountCnt && discountCnt.length >0) {
                 for (let k in discountCnt[0]) {
                     if (commonUtil.strInArray(k,mvParam)){
@@ -323,6 +324,13 @@ router.get('/', async(ctx, next)=> {
                     }
                 } 
                 data = discountCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let discountRuleMap = ExcelMap.discountRule()
+                    headers = commonUtil.getExcelHeader(headers,discountRuleMap)
+                    data = commonUtil.getExcelData(discountRuleMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)

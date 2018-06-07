@@ -10,6 +10,7 @@ const stationModel = require('../../models/station_model');
 const backendUserModel = require('../../models/user_model');
 const commonUtil = require('../utils/common');
 const modelUtils = require('../../models/utils/common');
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen/users`)
 
@@ -44,11 +45,23 @@ router.get('/consume/detail', async (ctx, next) => {
             let filename = 'user_consume_detail_list_' + (new Date().toLocaleDateString());
             let headers = [];
             let data = [];
+            let mvParam = ["pay_type"]
             if (consumeCnt && consumeCnt.length >0) {
                 for (let k in consumeCnt[0]) {
-                     headers.push(k)    
+                    if (commonUtil.strInArray(k,mvParam)){
+                        continue;
+                    } else {
+                        headers.push(k)    
+                    }
                 } 
                 data = consumeCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let userConsumeDetailMap = ExcelMap.userConsumeDetail()
+                    headers = commonUtil.getExcelHeader(headers,userConsumeDetailMap)
+                    data = commonUtil.getExcelData(userConsumeDetailMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)
@@ -118,7 +131,7 @@ router.get('/', async (ctx, next) => {
             let filename = 'user_card_list_' + (new Date().toLocaleDateString());
             let headers = [];
             let data = [];
-            let mvParam = ["initiate_by","confirm_by"]
+            let mvParam = ["id","unit_card_type","refund_status","status","initiate_by","confirm_by"]
             if (cardCnt && cardCnt.length >0) {
                 for (let k in cardCnt[0]) {
                     if (commonUtil.strInArray(k,mvParam)){
@@ -128,6 +141,13 @@ router.get('/', async (ctx, next) => {
                     }
                 } 
                 data = cardCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let userCardMap = ExcelMap.userCard()
+                    headers = commonUtil.getExcelHeader(headers,userCardMap)
+                    data = commonUtil.getExcelData(userCardMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)

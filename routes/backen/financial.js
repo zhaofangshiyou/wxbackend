@@ -11,6 +11,7 @@ const stationModel = require('../../models/station_model');
 const financeModel = require('../../models/financial_model');
 const commonUtil = require('../utils/common');
 const modelUtils = require('../../models/utils/common')
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen`)
 
@@ -55,10 +56,14 @@ router.get('/consume/detail', async (ctx, next) => {
             let filename = 'consume_detail_list_' + (new Date().toLocaleDateString());
             let headers = [];
             let data = [];
-            
+            let mvParam = ["pay_type"]
             if (consumeListCnt && consumeListCnt.length >0) {
                 for (let k in consumeListCnt[0]) {
-                   headers.push(k)    
+                    if (commonUtil.strInArray(k,mvParam)){
+                        continue;
+                    } else {
+                        headers.push(k)    
+                    }
                 } 
                 for (let i=0; i<consumeListCnt.length; i++) {
                     let time = consumeListCnt[i].consume_time;
@@ -66,6 +71,13 @@ router.get('/consume/detail', async (ctx, next) => {
                     consumeListCnt[i].consume_time = time;
                 }
                 data = consumeListCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let consumeDetailMap = ExcelMap.consumeDetail()
+                    headers = commonUtil.getExcelHeader(headers,consumeDetailMap)
+                    data = commonUtil.getExcelData(consumeDetailMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)
@@ -138,7 +150,14 @@ router.get('/consume', async (ctx, next) => {
                     time = time.toLocaleString();
                     consumeListCnt[i].currrent_time = time;
                 }
-                data = consumeListCnt 
+                data = consumeListCnt
+                
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let consumeMap = ExcelMap.consume()
+                    headers = commonUtil.getExcelHeader(headers,consumeMap)
+                    data = commonUtil.getExcelData(consumeMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)
@@ -209,6 +228,13 @@ router.get('/recharge/detail', async (ctx, next) => {
                     rechargeListCnt[i].charge_time = time;
                 }
                 data = rechargeListCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let rechargeDetailMap = ExcelMap.rechargeDetail()
+                    headers = commonUtil.getExcelHeader(headers,rechargeDetailMap)
+                    data = commonUtil.getExcelData(rechargeDetailMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)
@@ -268,6 +294,13 @@ router.get('/recharge', async (ctx, next) => {
                     rechargeListCnt[i].charge_time = time;
                 }
                 data = rechargeListCnt 
+
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let rechargeMap = ExcelMap.recharge()
+                    headers = commonUtil.getExcelHeader(headers,rechargeMap)
+                    data = commonUtil.getExcelData(rechargeMap,data) 
+                }
             }
     
             let buf = await modelUtils.toExcelBuf(headers, data)

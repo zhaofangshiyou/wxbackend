@@ -75,7 +75,41 @@ class Common {
             }
         }
         return false
-    }
+    };
+
+    //excel映射
+    getExcelHeader(head,map){
+        let ret = []
+        for (let i=0; i<head.length; i++){
+            for (let k in map){
+                if (head[i] == k) {
+                    ret.push(map[k])
+                } else {
+                    continue;s
+                }
+            }
+        }
+        return ret;
+    };
+    getExcelData(map,data){
+        let ret = []
+        for (let i=0; i<data.length; i++){
+            let row = {}
+            for (let k in map){
+                let v = map[k]
+                for (let k1 in data[i]){
+                    if (k == k1) {
+                        row[v] = data[i][k]
+                    } else {
+                        continue;
+                    }
+                }
+            }
+            ret.push(row)
+        }
+        return ret ;
+    };
+    
 }
 
 let common = new Common();

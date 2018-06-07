@@ -18,6 +18,7 @@ const request = require('request-promise-native');
 const xlsx = require('xlsx');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
+const ExcelMap = require('../../config/excel_map')
 
 router.prefix(`/${config.VERSION}/backen/station`)
 
@@ -134,13 +135,25 @@ router.get('/', async (ctx, next) => {
             let headers = [];
             let data = [];
             let sts = await stationModel.queryStationList(province_id, id, page_num, 0)
+            let mvParam = ["id","province_id","type"]
             if (sts && sts.length >0) {
                 for (let k in sts[0]) {
-                   headers.push(k)    
+                    if (commonUtil.strInArray(k,mvParam)) {
+                        continue;
+                    } else {
+                        headers.push(k)    
+                    }
                 } 
                 data = sts 
+                
+                let languageCH = ExcelMap.languageCH();
+                if (languageCH) {
+                    let stationMap = ExcelMap.station()
+                    headers = commonUtil.getExcelHeader(headers,stationMap)
+                    data = commonUtil.getExcelData(stationMap,data) 
+                }
             }
-     
+  
             let buf = await modelUtils.toExcelBuf(headers, data)
             ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
             ctx.set('Content-type', 'application/xlsx');
