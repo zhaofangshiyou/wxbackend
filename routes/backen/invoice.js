@@ -116,7 +116,7 @@ router.post('/invoice', async (ctx, next) => {
             return ;
         }
 
-        if (oilFlowInfo[0].is_invoicing == 1) {
+        if (oilFlowInfo[0].is_invoicing == 0) {
             ctx.body = {
                 status : 4,
                 msg : "该流水码已经开过发票，请确认." 
