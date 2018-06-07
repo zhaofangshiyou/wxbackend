@@ -419,7 +419,8 @@ class ConsumeModel {
             sql_param = sql_param + " and of.oil_id = :oil_id";
         }
        
-        let sql = "select of_sta.*,c_sta.* "+
+        let sql = "select of_sta.sta_id, of_sta.sta_name, sum(of_sta.actual_money) as actual_money,"+
+            "   c_sta.station_id,c_sta.station_name "+
             " from (select  sta.id as sta_id,sta.name as sta_name, of.card_id,"+
             "       sum((of.money-of.deduction_amount)) as actual_money "+
             "        from  stations sta,  oil_flows of "+
@@ -436,7 +437,8 @@ class ConsumeModel {
             "           and c.deleted_at is null " +
             "        order by sta.id desc ) c_sta "+
             "        on (c_sta.id = of_sta.card_id ) "+
-            "        where of_sta.sta_id <> c_sta.station_id ";
+            "        where of_sta.sta_id <> c_sta.station_id "+
+            " group by of_sta.sta_id, of_sta.sta_name,c_sta.station_id,c_sta.station_name";
 
         let ret = await Conn.query(sql,{replacements: {begin_time:begin_time, end_time:end_time,
                 oil_id:oil_id}, type: Sequelize.QueryTypes.SELECT});

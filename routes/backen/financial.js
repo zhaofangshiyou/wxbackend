@@ -372,7 +372,7 @@ router.get('/accounts', async (ctx, next) => {
             }
             accRow.push(row)
         }
-      
+  
         //if (acc && acc.length > 0){
         for (let i=0; i<header.length; i++){
             let prop = header[i].prop  //列
@@ -385,7 +385,7 @@ router.get('/accounts', async (ctx, next) => {
                 let rowstaId = row.station_id
                 accRow[m][prop] = "-";
                 if (acc && acc.length > 0){
-                    for (let j=0; j<acc.length; j++){
+                    for (let j=0; j<acc.length; j++){                  
                         if ((prop == acc[j].sta_id) && (rowstaId == acc[j].station_id)){
                             accRow[m][prop] = acc[j].actual_money;
                         } 
