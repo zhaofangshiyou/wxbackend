@@ -3,8 +3,8 @@
  * 公有工具类，相当于大杂烩
  */
 class Common {
-
-     getDistance({latitude: lat1, longitude: lng1}, {latitude: lat2, longitude: lng2}) {//计算两个经纬度的距离，单位精确到 m/米
+    //计算两个经纬度的距离，单位精确到 m/米
+     getDistance({latitude: lat1, longitude: lng1}, {latitude: lat2, longitude: lng2}) {
          // console.log(typeof lat1)
          // console.log(typeof lng1)
         let deg2rad = (deg) => deg * (Math.PI / 180)
@@ -19,8 +19,22 @@ class Common {
         return Math.round(R * c * 1000) // Distance in m
     }
 
-     getRandomInt() {
+     //与中控系统 oil_type 进行转换
+    exchangeOilType(oil_type){
+         let map = new Map([
+             ['0#柴油', "oil_0"]//
+             , ['92#汽油', "oil_92"]//
+             , ['95#汽油', "oil_98"]//
+             , ['98#汽油', "oil_98"]//
+             , ['-10#柴油', "oil_10"]//
+             , ['-20#柴油', "oil_20"]//
 
+         ]);
+        return map.get(oil_type);
+    }
+
+     //获取随机数
+     getRandomInt() {
         let num = Math.floor(Math.random() * 10);
         return num;
     }
