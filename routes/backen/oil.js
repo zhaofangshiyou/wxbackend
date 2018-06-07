@@ -9,6 +9,7 @@ const koa_jwt = require('koa-jwt');
 const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common')
 
 router.prefix(`/${config.VERSION}/backen/oil`)
 
@@ -247,7 +248,7 @@ router.delete('/gum/del', async (ctx, next) => {
 //初始化页面和分页
 router.get('/gum', async (ctx, next) => {
     try {
-        let {page_num, num, station_id} = ctx.query;
+        let {act, page_num, num, station_id} = ctx.query;
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -260,9 +261,29 @@ router.get('/gum', async (ctx, next) => {
 
         let oilList = await oilModel.queryOilGumList(station_id,page_num,num);
 
-        let oilNum = await oilModel.queryOilGumList(station_id,0,0)
+        let oilNum = await oilModel.queryOilGumList(station_id,page_num,0)
 
-        if (oilList) {
+        if (act && act == "export") {
+            let filename = 'oilgums_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            let mvParam = ["id","oil_id","station_id"]
+            if (oilNum && oilNum.length > 0){
+                for (let k in oilNum[0]) {
+                    if (commonUtil.strInArray(k,mvParam)) {
+                        continue;
+                    } else {
+                        headers.push(k)    
+                    }
+                } 
+                data = oilNum 
+            }
+
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
             ctx.body = {
                 status : 0,
                 msg : "success",
@@ -273,7 +294,6 @@ router.get('/gum', async (ctx, next) => {
                 }
             }
         }
-
     } catch (error) {
         ctx.body = {
             status : 1,

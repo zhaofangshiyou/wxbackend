@@ -11,6 +11,7 @@ const stationModel = require('../../models/station_model');
 const invoiceModel = require('../../models/invoice_model');
 const userModel = require('../../models/user_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common');
 
 router.prefix(`/${config.VERSION}/backen`)
 
@@ -27,7 +28,7 @@ router.use(function (ctx, next) {
 
 router.get('/invoice', async (ctx, next) => {
     try {
-        let {card_no, page_num, num} = ctx.query
+        let {act, card_no, page_num, num} = ctx.query
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -36,15 +37,31 @@ router.get('/invoice', async (ctx, next) => {
 
         let invoiceCnt = await invoiceModel.queryInvoiceList(card_no, page_num ,0)
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                invoice_list : invoiceList,
-                invoice_total : invoiceCnt.length
+        if (act && act == "export") {
+            let filename = 'invoice_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            if (invoiceCnt && invoiceCnt.length >0) {
+                for (let k in invoiceCnt[0]) {
+                    headers.push(k)     
+                } 
+                data = invoiceCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    invoice_list : invoiceList,
+                    invoice_total : invoiceCnt.length
+                }
             }
         }
-
     } catch(error) {
         ctx.body = {
             status : 1,

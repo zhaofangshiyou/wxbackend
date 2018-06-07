@@ -36,6 +36,21 @@ class Common {
     }
 
     toExcelBuf(_headers, _data, sheetName = 'sheet1') {//将数据库数据转成 Excel buffer
+        if (_headers.length ==0 && _data.length == 0) {
+            // 构建 workbook 对象
+            var wb = {
+                SheetNames: [sheetName],
+                Sheets: {
+                    'sheet1': Object.assign({})
+                }
+            };
+            // 导出 Excel
+            XLSX.writeFile(wb, 'output.xlsx');
+            var wopts = {bookType: 'xlsx', bookSST: false, type: 'buffer'};
+            var wbout = XLSX.write(wb, wopts);
+            return wbout
+        }
+
         //******
         // var _headers = ['id', 'name', 'age', 'country', 'remark']
         // var _data = [ { id: '1',

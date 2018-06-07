@@ -64,6 +64,18 @@ class Common {
         }
         return true;
     };
+
+    //准确判断某个值是否在数组里面 ,存在为true
+    strInArray(str,array){
+        for (let i=0; i<array.length; i++){
+            if(array[i] == str){
+                return true
+            } else {
+                continue;
+            }
+        }
+        return false
+    }
 }
 
 let common = new Common();

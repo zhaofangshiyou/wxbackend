@@ -13,6 +13,7 @@ const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const discountModel = require('../../models/discount_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common')
 
 router.prefix(`/${config.VERSION}/backen/discount`)
 
@@ -290,7 +291,7 @@ router.delete('/del', async(ctx, next)=> {
 //初始化页面，分页
 router.get('/', async(ctx, next)=> {
     try {
-        let {province_id, station_id, begin_time, end_time, page_num ,num} = ctx.query;
+        let {act, province_id, station_id, begin_time, end_time, page_num ,num} = ctx.query;
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -307,15 +308,37 @@ router.get('/', async(ctx, next)=> {
         options.num = 0;
         let discountCnt = await discountModel.queryDiscountRuleList(options)
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                discount_rule_list : discountRuleList,
-                discount_rule_cnt : discountCnt.length
+        if (act && act == "export") {
+            let filename = 'discount_rule_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            let mvParam = ["province_id","id","discount_type","created_at","updated_at",
+                "discount_date_start", "discount_date_end", "deleted_at"]
+            if (discountCnt && discountCnt.length >0) {
+                for (let k in discountCnt[0]) {
+                    if (commonUtil.strInArray(k,mvParam)){
+                        continue;
+                    } else {
+                        headers.push(k)    
+                    }
+                } 
+                data = discountCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    discount_rule_list : discountRuleList,
+                    discount_rule_cnt : discountCnt.length
+                }
             }
         }
-
     } catch (error) {
         ctx.body = {
             status : 1,

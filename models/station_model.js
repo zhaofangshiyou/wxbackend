@@ -52,6 +52,7 @@ class StationModel {
     async queryStationList(province_id,station_id, page_num, num){
 
         let sql = " select sta.id, sta.name, sta.province, sta.oil_gum_nums, sta.province_id, sta.city,sta.type, " +
+            " (case sta.type when 1 then '自有' when 2 then '共享' end) as station_type,"+
             " 1000+sta.id as station_id, group_concat(oi.name separator '、') as oil_list" +
             " from  stations sta  left join oil_infos oi " +
             " on find_in_set(oi.id, sta.oil_list) " +
@@ -65,8 +66,9 @@ class StationModel {
             sql = sql + " and sta.province_id = :province"
         }
 
+        sql = sql + " group by sta.id ";
         if ((page_num >= 0) && (num > 0)) {
-            sql = sql + " group by sta.id limit :page, :num "
+            sql = sql + " limit :page, :num "
         }
 
         let ret = await Conn.query(sql,{replacements: {id:station_id, province:province_id, page:(page_num*num), num:num},
