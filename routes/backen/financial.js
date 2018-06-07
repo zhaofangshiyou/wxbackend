@@ -373,18 +373,18 @@ router.get('/accounts', async (ctx, next) => {
             accRow.push(row)
         }
       
-        if (acc && acc.length > 0){
-            for (let i=0; i<header.length; i++){
-                let prop = header[i].prop  //列
-                if (prop == "station_name") {
-                    continue;
-                }
-                prop = parseInt(prop);
-                for (let m=0; m<accRow.length; m++){
-                    let row = accRow[m]
-                    let rowstaId = row.station_id
-                    accRow[m][prop] = "-";
-
+        //if (acc && acc.length > 0){
+        for (let i=0; i<header.length; i++){
+            let prop = header[i].prop  //列
+            if (prop == "station_name") {
+                continue;
+            }
+            prop = parseInt(prop);
+            for (let m=0; m<accRow.length; m++){
+                let row = accRow[m]
+                let rowstaId = row.station_id
+                accRow[m][prop] = "-";
+                if (acc && acc.length > 0){
                     for (let j=0; j<acc.length; j++){
                         if ((prop == acc[j].sta_id) && (rowstaId == acc[j].station_id)){
                             accRow[m][prop] = acc[j].actual_money;
@@ -410,7 +410,7 @@ router.get('/accounts', async (ctx, next) => {
                         let k1 = ""
                         for (let j=0; j<header.length; j++){
                             if (k == header[j].prop) {
-                                k1 = header[j].lable
+                                k1 = header[j].label
                                 rows[k1] = accRow[i][k]
                             } else {
                                 continue;
@@ -421,7 +421,7 @@ router.get('/accounts', async (ctx, next) => {
                 }
                 data = accList                
             }
-       
+            console.log(data)
             let buf = await modelUtils.toExcelBuf(headers, data)
             ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
             ctx.set('Content-type', 'application/xlsx');
