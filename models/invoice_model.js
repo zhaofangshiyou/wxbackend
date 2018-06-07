@@ -32,7 +32,7 @@ class InvoiceModel {
                     " of.vol,"+
                     " of.money,"+
                     " of.is_invoicing,"+
-                    " (case of.is_invoicing when 0 then '未开' when 1 then '已开' else '未记录' end) as is_invoicing_name,"+
+                    " (case of.is_invoicing when 1 then '未开' when 0 then '已开' else '未记录' end) as is_invoicing_name,"+
                     " date_format(of.updated_at,'%Y-%m-%d %H:%i:%s') as invoice_time, "+
                     " of.operator "+
                 " from oil_flows of, stations sta "+
