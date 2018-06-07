@@ -10,6 +10,7 @@ const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const regionModel = require('../../models/region_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common')
 
 router.prefix(`/${config.VERSION}/backen/oil`)
 
@@ -244,7 +245,7 @@ router.delete('/price/del', async (ctx, next) => {
 //初始化油品油价关系
 router.get('/price', async (ctx, next) => {
     try {
-        let {page_num, num, province_id} = ctx.query
+        let {act, page_num, num, province_id} = ctx.query
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -257,7 +258,7 @@ router.get('/price', async (ctx, next) => {
 
         let priceList = await oilModel.queryOilPriceList(options,page_num,num);
 
-        let priceListCnt = await oilModel.queryOilPriceList(options,0,0);
+        let priceListCnt = await oilModel.queryOilPriceList(options,page_num,0);
 
         //element-ui动态表格适应格式
         let oilInfo = await oilModel.queryAllOilInfo();
@@ -271,7 +272,7 @@ router.get('/price', async (ctx, next) => {
             header.push(oilKV)
         }
         header.push({"prop":"active_at","lable":"生效时间"});
-
+        //返回给前端的某一页
         let oil_price_list = []
         for (let i=0; i<priceList.length; i++) {
             let oils = priceList[i].oils;
@@ -297,7 +298,7 @@ router.get('/price', async (ctx, next) => {
             }
             oil_price_list.push(row)
         }
-
+        /*
         //未适应element-ui的格式
         for (let i=0; i<priceList.length; i++) {
             let oils = priceList[i].oils;
@@ -307,15 +308,76 @@ router.get('/price', async (ctx, next) => {
                 oils[j].active_at = times;
             }
         }
+        */
+       //导出excel
+        if (act && act == "export") {
+            let filename = 'oil_price_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            for (let i=0; i<header.length; i++) {
+                headers.push(header[i].lable)       
+            } 
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                //price_list : priceList,
-                header : header,
-                oil_price_list: oil_price_list,
-                list_cnt : priceListCnt.length
+            let oil_price_list_all = []
+            for (let i=0; i<priceList.length; i++) {
+                let oils = priceList[i].oils;
+                let province_name = priceList[i].name
+                let proId = priceList[i].id
+                let row = {}
+                row["province"] = province_name
+                row["province_id"] = proId
+                for (let j=0; j<oils.length; j++){
+                    let oil_id = oils[j].oil_id
+                    let oil_price = oils[j].price
+                    let time = new Date(parseInt(oils[j].active_at));
+                    times = time.toLocaleString();
+
+                    for (let n=0; n<header.length; n++){
+                        let field = header[n].prop
+                        if ((parseInt(field) == oil_id)) {
+                            row[field] = oil_price ? oil_price : 0;
+
+                        }
+                    }
+                    row["active_at"] = times;
+                }
+                oil_price_list_all.push(row)
+            }
+
+            let oilPriceList = []
+            if (oil_price_list_all && oil_price_list_all.length > 0){
+                for (let i=0; i<oil_price_list_all.length; i++){
+                    let rows = {}
+                    for (let k in oil_price_list_all[i]) {
+                        let k1 = ""
+                        for (let j=0; j<header.length; j++){
+                            if (k == header[j].prop) {
+                                k1 = header[j].lable
+                                rows[k1] = oil_price_list_all[i][k]
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                    oilPriceList.push(rows)
+                }
+                data = oilPriceList                
+            }
+
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    //price_list : priceList,
+                    header : header,
+                    oil_price_list: oil_price_list,
+                    list_cnt : priceListCnt.length
+                }
             }
         }
 

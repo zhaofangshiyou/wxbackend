@@ -10,6 +10,7 @@ const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const financeModel = require('../../models/financial_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common')
 
 router.prefix(`/${config.VERSION}/backen`)
 
@@ -27,7 +28,7 @@ router.use(function (ctx, next) {
 //查找消费列表
 router.get('/consume/detail', async (ctx, next) => {
     try {
-        let {province_id, station_id, begin_time, end_time, oil_id, vol_min,
+        let {act, province_id, station_id, begin_time, end_time, oil_id, vol_min,
             vol_max, pay_channel, page_num, num} = ctx.query
 
         let data = ctx.query;
@@ -38,25 +39,48 @@ router.get('/consume/detail', async (ctx, next) => {
         data.page_num = page_num;
 
         let consumeList = await financeModel.queryConsumeDetailList(data,1);
-
+    
         data.num = 0;
         let consumeListCnt = await financeModel.queryConsumeDetailList(data,1);
 
         let consumeTotal = await financeModel.queryConsumeDetailList(data,0);
-
+    
         for (let i=0; i<consumeList.length; i++) {
             let time = consumeList[i].consume_time;
             time = time.toLocaleString();
             consumeList[i].consume_time = time;
         }
 
-        ctx.body = {
-            status: 0,
-            msg : "success",
-            data: {
-                consume_list: consumeList,
-                consume_list_cnt: consumeListCnt.length,
-                consume_total: consumeTotal[0]
+        if (act && act == "export") {
+            let filename = 'consume_detail_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            
+            if (consumeListCnt && consumeListCnt.length >0) {
+                for (let k in consumeListCnt[0]) {
+                   headers.push(k)    
+                } 
+                for (let i=0; i<consumeListCnt.length; i++) {
+                    let time = consumeListCnt[i].consume_time;
+                    time = time.toLocaleString();
+                    consumeListCnt[i].consume_time = time;
+                }
+                data = consumeListCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status: 0,
+                msg : "success",
+                data: {
+                    consume_list: consumeList,
+                    consume_list_cnt: consumeListCnt.length,
+                    consume_total: consumeTotal[0]
+                }
             }
         }
     } catch (error) {
@@ -70,7 +94,8 @@ router.get('/consume/detail', async (ctx, next) => {
 //查找消费汇总
 router.get('/consume', async (ctx, next) => {
     try {
-        let {province_id, station_id, begin_time, end_time, oil_id, page_num, num, type} = ctx.query
+        let {act, province_id, station_id, begin_time, end_time, 
+            oil_id, page_num, num, type} = ctx.query
 
         if ((!type) || (parseInt(type) !=1 && parseInt(type) !=2)) {
             ctx.body = {
@@ -99,13 +124,36 @@ router.get('/consume', async (ctx, next) => {
             consumeList[i].currrent_time = time;
         }
 
-        ctx.body = {
-            status: 0,
-            msg : "success",
-            data: {
-                consume_list: consumeList,
-                consume_list_cnt: consumeListCnt.length,
-                consume_total: consumeTotal[0]
+        if (act && act == "export") {
+            let filename = 'consume_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            
+            if (consumeListCnt && consumeListCnt.length >0) {
+                for (let k in consumeListCnt[0]) {
+                   headers.push(k)    
+                } 
+                for (let i=0; i<consumeListCnt.length; i++) {
+                    let time = consumeListCnt[i].currrent_time;
+                    time = time.toLocaleString();
+                    consumeListCnt[i].currrent_time = time;
+                }
+                data = consumeListCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status: 0,
+                msg : "success",
+                data: {
+                    consume_list: consumeList,
+                    consume_list_cnt: consumeListCnt.length,
+                    consume_total: consumeTotal[0]
+                }
             }
         }
     } catch (error) {
@@ -119,7 +167,7 @@ router.get('/consume', async (ctx, next) => {
 //查找充值明细
 router.get('/recharge/detail', async (ctx, next) => {
     try {
-        let {province_id, station_id, begin_time, end_time, card_no, page_num, num} = ctx.query
+        let {act, province_id, station_id, begin_time, end_time, card_no, page_num, num} = ctx.query
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
@@ -146,13 +194,36 @@ router.get('/recharge/detail', async (ctx, next) => {
             rechargeList[i].charge_time = time;
         }
 
-        ctx.body = {
-            status: 0,
-            msg : "success",
-            data: {
-                recharge_list: rechargeList,
-                recharge_list_cnt: rechargeListCnt.length,
-                recharge_total: rechargeTotal[0]
+        if (act && act == "export") {
+            let filename = 'recharge_detail_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+        
+            if (rechargeListCnt && rechargeListCnt.length >0) {
+                for (let k in rechargeListCnt[0]) {
+                   headers.push(k)    
+                } 
+                for (let i=0; i<rechargeListCnt.length; i++) {
+                    let time = rechargeListCnt[i].charge_time;
+                    time = time.toLocaleString();
+                    rechargeListCnt[i].charge_time = time;
+                }
+                data = rechargeListCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status: 0,
+                msg : "success",
+                data: {
+                    recharge_list: rechargeList,
+                    recharge_list_cnt: rechargeListCnt.length,
+                    recharge_total: rechargeTotal[0]
+                }
             }
         }
     } catch (error) {
@@ -167,7 +238,7 @@ router.get('/recharge/detail', async (ctx, next) => {
 //查找充值汇总
 router.get('/recharge', async (ctx, next) => {
     try {
-        let {province_id, station_id, page_num, num} = ctx.query
+        let {act, province_id, station_id, page_num, num} = ctx.query
 
         let data = ctx.query;
         num = (num && (parseInt(num) >= 0)) ? parseInt(num) : 15;  //默认15条
@@ -182,13 +253,36 @@ router.get('/recharge', async (ctx, next) => {
 
         let rechargeTotal = await financeModel.queryRechargeList(data,0);
 
-        ctx.body = {
-            status: 0,
-            msg : "success",
-            data: {
-                recharge_list: rechargeList,
-                recharge_list_cnt: rechargeListCnt.length,
-                recharge_total: rechargeTotal[0]
+        if (act && act == "export") {
+            let filename = 'recharge_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+        
+            if (rechargeListCnt && rechargeListCnt.length >0) {
+                for (let k in rechargeListCnt[0]) {
+                   headers.push(k)    
+                } 
+                for (let i=0; i<rechargeListCnt.length; i++) {
+                    let time = rechargeListCnt[i].charge_time;
+                    time = time.toLocaleString();
+                    rechargeListCnt[i].charge_time = time;
+                }
+                data = rechargeListCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status: 0,
+                msg : "success",
+                data: {
+                    recharge_list: rechargeList,
+                    recharge_list_cnt: rechargeListCnt.length,
+                    recharge_total: rechargeTotal[0]
+                }
             }
         }
     } catch (error) {
@@ -202,7 +296,7 @@ router.get('/recharge', async (ctx, next) => {
 //往来账,只计算了在使用的油站
 router.get('/accounts', async (ctx, next) => {
     try {
-        let {begin_time, end_time, oil_id} = ctx.query;
+        let {act, begin_time, end_time, oil_id} = ctx.query;
 
         let data = ctx.query;
         let acc = await financeModel.queryAccountList(data);
@@ -221,6 +315,7 @@ router.get('/accounts', async (ctx, next) => {
         }
 
         let accRow = [];
+        /*
         if (!acc || (acc.length == 0)) {
             ctx.body = {
                 status : 0,
@@ -232,7 +327,7 @@ router.get('/accounts', async (ctx, next) => {
             }
             return;
         }
-
+*/
         //第一列，与标题行对应
         for (let i=0; i<header.length; i++) {
             let row = {};
@@ -266,12 +361,46 @@ router.get('/accounts', async (ctx, next) => {
             }
         }
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                header:header,
-                accounts_list :accRow
+        if (act && act == "export") {
+            let filename = 'accounts_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            for (let i=0; i<header.length; i++) {
+                headers.push(header[i].label)       
+            } 
+
+            let accList = []
+            if (accRow && accRow.length > 0){
+                for (let i=0; i<accRow.length; i++){
+                    let rows = {}
+                    for (let k in accRow[i]) {
+                        let k1 = ""
+                        for (let j=0; j<header.length; j++){
+                            if (k == header[j].prop) {
+                                k1 = header[j].lable
+                                rows[k1] = accRow[i][k]
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                    accList.push(rows)
+                }
+                data = accList                
+            }
+       
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    header:header,
+                    accounts_list :accRow
+                }
             }
         }
     } catch(error){

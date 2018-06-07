@@ -9,6 +9,7 @@ const oilModel = require('../../models/oil_model');
 const stationModel = require('../../models/station_model');
 const backendUserModel = require('../../models/user_model');
 const commonUtil = require('../utils/common');
+const modelUtils = require('../../models/utils/common');
 
 router.prefix(`/${config.VERSION}/backen/users`)
 
@@ -26,7 +27,7 @@ router.use(function (ctx, next) {
 //用户消费明细
 router.get('/consume/detail', async (ctx, next) => {
     try {
-        let {card_no, page_num, num} = ctx.query;
+        let {act, card_no, page_num, num} = ctx.query;
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -39,12 +40,29 @@ router.get('/consume/detail', async (ctx, next) => {
         let consumeList = await backendUserModel.queryUserConsume(card_id,page_num,num);
         let consumeCnt = await backendUserModel.queryUserConsume(card_id,page_num,0)
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                consume_list : consumeList,
-                consume_list_cnt : consumeCnt.length
+        if (act && act == "export") {
+            let filename = 'user_consume_detail_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            if (consumeCnt && consumeCnt.length >0) {
+                for (let k in consumeCnt[0]) {
+                     headers.push(k)    
+                } 
+                data = consumeCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    consume_list : consumeList,
+                    consume_list_cnt : consumeCnt.length
+                }
             }
         }
     }catch (error) {
@@ -58,7 +76,7 @@ router.get('/consume/detail', async (ctx, next) => {
 //初始化列表
 router.get('/', async (ctx, next) => {
     try {
-        let {card_no, page_num, num} = ctx.query
+        let {act, card_no, page_num, num} = ctx.query
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
@@ -96,12 +114,34 @@ router.get('/', async (ctx, next) => {
             }
         }
 
-        ctx.body = {
-            status : 0,
-            msg : "success",
-            data : {
-                card_list : cardList,
-                card_list_cnt : cardCnt.length
+        if (act && act == "export") {
+            let filename = 'user_card_list_' + (new Date().toLocaleDateString());
+            let headers = [];
+            let data = [];
+            let mvParam = ["initiate_by","confirm_by"]
+            if (cardCnt && cardCnt.length >0) {
+                for (let k in cardCnt[0]) {
+                    if (commonUtil.strInArray(k,mvParam)){
+                        continue; 
+                    }else {
+                        headers.push(k)    
+                    }
+                } 
+                data = cardCnt 
+            }
+    
+            let buf = await modelUtils.toExcelBuf(headers, data)
+            ctx.set('Content-disposition', 'attachment; filename=' + filename + '.xlsx');
+            ctx.set('Content-type', 'application/xlsx');
+            ctx.body = buf
+        } else {
+            ctx.body = {
+                status : 0,
+                msg : "success",
+                data : {
+                    card_list : cardList,
+                    card_list_cnt : cardCnt.length
+                }
             }
         }
     } catch(error) {
