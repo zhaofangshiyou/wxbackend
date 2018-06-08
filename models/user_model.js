@@ -161,7 +161,7 @@ class BackendUserModel {
         }
 
         if((page_num>=0) && (num>0)) {
-            sql = sql + " limit :page, :num";
+            sql = sql + " order by of.created_at desc limit :page, :num";
         }
 
         let ret = await Conn.query(sql,{replacements:{id:card_id, page:page_num*num,
