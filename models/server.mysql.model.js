@@ -47,8 +47,8 @@ let Card = mSequelize.define('card', {//卡表
     , unit_card_type: DataTypes.STRING  //卡类型,0 - 个人卡 1 - 单位卡
     , parent_id: DataTypes.BIGINT(11)      //主卡IDå
     , station_id: DataTypes.STRING      //办卡油站
-    , status: DataTypes.STRING      //卡的可用状态 0 - 可用 1 - 不可用
-    , refund_status: DataTypes.STRING      //申请退款的状态 0 - 已退款 1 - 未退款
+    , status: {type : DataTypes.STRING, defaultValue: 0 }     //卡的可用状态 0 - 可用 1 - 不可用
+    , refund_status: {type : DataTypes.STRING, defaultValue: 0 }     //申请退款中的状态 1 ，已退款、未退款 0 
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
