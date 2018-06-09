@@ -17,9 +17,10 @@ let User = mSequelize.define('user', {//用户表
     , id_card: DataTypes.STRING  //身份证
     , car_num: DataTypes.STRING  //车牌号
     , car_type: DataTypes.STRING  //车型号
-    , welfare_amount: DataTypes.DECIMAL(10, 2)     //公益金
-    , total_vol: DataTypes.DECIMAL  //累计加油*
-    , score: DataTypes.INTEGER  //积分
+    , welfare_amount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}     //公益金
+    , total_vol: {type: DataTypes.DECIMAL(18, 2), defaultValue: 0}  //累计加油*
+    , score: {type: DataTypes.INTEGER, defaultValue: 0}  //积分
+
     // , totalVol: DataTypes.DECIMAL  //累计加油
     , destroy_at: DataTypes.STRING      //注销时间
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
@@ -41,9 +42,9 @@ let Card = mSequelize.define('card', {//卡表
     // , card_num: {type: DataTypes.INTEGER, autoIncrement: true}      //卡号*
     , card_prefix: DataTypes.INTEGER      //卡号前缀*
     , password: DataTypes.STRING      //办卡油站
-    , person_balance: DataTypes.DECIMAL(10, 2)       //个人余额
-    , company_balance: DataTypes.DECIMAL(10, 2)   //单位余额
-    , unit_card_type: DataTypes.STRING  //卡类型
+    , person_balance: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}       //个人余额
+    , company_balance: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //单位余额
+    , unit_card_type: DataTypes.STRING  //卡类型,0 - 个人卡 1 - 单位卡
     , parent_id: DataTypes.BIGINT(11)      //主卡IDå
     , station_id: DataTypes.STRING      //办卡油站
     , status: DataTypes.STRING      //卡的可用状态 0 - 可用 1 - 不可用
@@ -59,19 +60,21 @@ let Card = mSequelize.define('card', {//卡表
 let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     // , user_id: DataTypes.BIGINT(11)     //用户ID
-    , money: DataTypes.DECIMAL(10, 2)   //加油金额
-    , oil_type: DataTypes.STRING  //优品类别
-    , vol: DataTypes.DECIMAL(10, 2)  //升数，加油生数
+    , money: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //加油金额
+    , oil_type: DataTypes.STRING  //油品类别
+    , vol: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}  //升数，加油生数
     , pay_channel: DataTypes.STRING      //支付通道（1 - 个人卡，2 - 单位卡，3 - 微信支付）
+    // , pay_channel: DataTypes.STRING      //支付通道（0 - 个人卡 1 - 单位卡，2 - 全部，3 - 微信支付）
     , station_id: {
         type: DataTypes.BIGINT(11)
         , allowNull: true
     }     //油站ID
+    , station_name: DataTypes.STRING      //油站名
     , oil_gum_num: DataTypes.STRING      //油枪号
-    , deduction_amount: DataTypes.DECIMAL(10, 2)      //优惠券抵扣金额
+    , deduction_amount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}      //优惠券抵扣金额
     , come_channel: DataTypes.STRING      //入口通道
-    , is_invoicing: DataTypes.STRING      //是否开过发票
-    , poundage: DataTypes.DECIMAL(10, 2)  //手续费
+    , is_invoicing: DataTypes.STRING      //是否开过发票 0-已开发票 1-未开发票
+    , poundage: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}  //手续费
     , card_id: DataTypes.INTEGER //卡号
     , oil_id: DataTypes.INTEGER //
 
@@ -89,11 +92,11 @@ let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
 let ChargeFlow = mSequelize.define('charge_flow', {//充值流水
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     // , user_id: DataTypes.BIGINT(11)     //用户ID
-    , money: DataTypes.DECIMAL(10, 2)   //充值金额
-    , type: DataTypes.STRING   //充值类型 <1 - 个人|2 - 单位>
-    , deduction_amount: DataTypes.DECIMAL(10, 2)   //优惠券抵扣金额
-    , poundage: DataTypes.DECIMAL(10, 2)  //手续费
-    , card_id: DataTypes.INTEGER //卡号
+    , money: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //充值金额
+    , type: DataTypes.STRING   //充值类型 <0 - 个人|1 - 单位>
+    , deduction_amount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠券抵扣金额
+    , poundage: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}  //手续费
+    , card_id: {type: DataTypes.INTEGER, defaultValue: 0} //卡号
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
@@ -104,12 +107,12 @@ let ChargeFlow = mSequelize.define('charge_flow', {//充值流水
 
 let ScoreFlow = mSequelize.define('score_flow', {//积分流水
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
-    // , user_id: DataTypes.BIGINT(11)     //用户ID
-    , comsume_score: DataTypes.STRING   //消费积分数
-    , commodity_id: DataTypes.STRING   //商品ID
-    , use_at: DataTypes.STRING   //使用时间
+    // , user_id: DataTypes.BIGINT(11)     //用户ID，关联之后，后台生成
     , use_place: DataTypes.STRING   //使用地点
-    // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
+    , score_description: DataTypes.STRING   //积分描述: + 30 / - 40
+    , description: DataTypes.STRING   //描述
+    , commodity_id: DataTypes.STRING   //商品ID
+    , use_at: DataTypes.DATE()   //使用时间
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
     , underscored: true//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
@@ -162,7 +165,7 @@ let Oil = mSequelize.define('oil', {//油品表,确定不是油价表吗？
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     // , station_id: DataTypes.BIGINT(11)   //油站ID
     , name: DataTypes.STRING       //油品名
-    , price: DataTypes.DECIMAL(10, 2)   //油价
+    , price: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //油价
     , active_at: DataTypes.STRING   //生效时间
     , province_id: DataTypes.INTEGER   //省份
     , city: DataTypes.STRING   //城市
@@ -185,15 +188,40 @@ let DiscountRule = mSequelize.define('discount_rule', {//折扣表（该表有�
     , oil_0: DataTypes.STRING   //0号油的优惠规则
     , oil_10: DataTypes.STRING   //-10号油的优惠规则
     , oil_20: DataTypes.STRING   //-20号油的优惠规则
-    , amount_start: DataTypes.DECIMAL(10, 2)   //优惠起始金额
+    , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
     , discount_type: DataTypes.STRING   //优惠类型，使用哪种优惠规则以此为判断
     , discount_date_start: DataTypes.DATE()   //优惠日期
     , discount_date_end: DataTypes.DATE()   //优惠日期
-    , discount: DataTypes.DECIMAL(10, 2)   //折扣
+    , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
     , discount_days: DataTypes.INTEGER //折扣天数
-    
+    // , is_overlay: {type: DataTypes.STRING, defaultValue: "0"} //是否可以叠加优惠，0 - 叠加，1 - 不叠加
     // , statin_id: DataTypes.STRING   //油站ID
+    // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
+}, {
+    timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
+    , underscored: true//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
+    , paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
 
+});
+
+let UserDiscountRule = mSequelize.define('user_discount_rule', {//折扣表（该表有两种优惠类型，一种为按油品类进行优惠，一种按日期进行优惠）
+    id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
+    , oil_type: DataTypes.STRING       //油的种类
+    // , station_id: DataTypes.BIGINT(11)   //油站ID
+    , oil_92: DataTypes.STRING   //92号油的优惠规则
+    , oil_95: DataTypes.STRING   //95号油的优惠规则
+    , oil_98: DataTypes.STRING   //98号油的优惠规则
+    , oil_0: DataTypes.STRING   //0号油的优惠规则
+    , oil_10: DataTypes.STRING   //-10号油的优惠规则
+    , oil_20: DataTypes.STRING   //-20号油的优惠规则
+    , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
+    , discount_type: DataTypes.STRING   //优惠类型，使用哪种优惠规则以此为判断
+    , discount_date_start: DataTypes.DATE()   //优惠日期
+    , discount_date_end: DataTypes.DATE()   //优惠日期
+    , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
+    , discount_days: DataTypes.INTEGER //折扣天数
+    , is_overlay: {type: DataTypes.STRING, defaultValue: "0"} //是否可以叠加优惠，0 - 叠加，1 - 不叠加
+    // , statin_id: DataTypes.STRING   //油站ID
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
@@ -256,7 +284,7 @@ let DiscountDoc = mSequelize.define('discount_doc', {
 let Refund = mSequelize.define('refund', {
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'},
     card_id : DataTypes.BIGINT(11),  //卡id
-    money : DataTypes.DECIMAL(10, 2),  //退款金额
+    money : {type: DataTypes.DECIMAL(10, 2), defaultValue: 0},  //退款金额
     initiate_by : DataTypes.BIGINT(11),  //发起人id
     confirm_by : DataTypes.BIGINT(11),  //确认人id
     status : DataTypes.INTEGER  //退款进度 1申请中  2已完成
@@ -281,8 +309,32 @@ let BackendUser = mSequelize.define('backend_user', {
     paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
 });
 
+let Order = mSequelize.define('order', {//订单表
+    id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
+    // , user_id: DataTypes.STRING      //用户 id，通过关系生成
+    // , station_id: DataTypes.STRING      //订单号，通过关系生成
+    , trade_no: DataTypes.STRING      //订单号
+    , cc_flow_id: DataTypes.STRING      //中控流水号
+    , pay_status: DataTypes.STRING       //支付状态 0 - 支付，1 - 未支付
+    , mount: DataTypes.STRING       //支付金额
+    , pay_mount: DataTypes.STRING       //支付金额
+    , good_name: DataTypes.STRING   //商品名
+    , good_description: DataTypes.STRING   //商品描述
+    , price: DataTypes.STRING  //单价
+    , amount: DataTypes.STRING      //数量
+    , discount: DataTypes.STRING      //折扣
+}, {
+    timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
+    , underscored: true//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
+    , paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
+});
+
+
+
 Station.hasMany(Oil, {foreignKey: 'station_id', targetKey: 'id'});
 Station.hasMany(DiscountRule, {foreignKey: 'station_id', targetKey: 'id'});
+Station.hasMany(Order, {foreignKey: 'station_id', targetKey: 'id'});
+Station.hasMany(UserDiscountRule, {foreignKey: 'station_id', targetKey: 'id'});
 
 Station.hasMany(OilFlow, {foreignKey: 'station_id', targetKey: 'id'});
 // OilFlow.hasOne(Station, {
@@ -300,12 +352,16 @@ User.hasMany(OilFlow, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(ChargeFlow, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(ScoreFlow, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(Discount, {foreignKey: 'user_id', targetKey: 'id'});
+User.hasMany(Order, {foreignKey: 'user_id', targetKey: 'id'});
+User.hasMany(UserDiscountRule, {foreignKey: 'user_id', targetKey: 'id'});
 Region.hasMany(Oil, {foreignKey: 'province_id', targetKey: 'id'});
 
 OilFlow.sync();
 ChargeFlow.sync();
 // User.sync({force: true});
 // DiscountRule.sync({force: true});
+// Order.sync({force: true});
+// UserDiscountRule.sync({force: true});
 mSequelize.sync();
 // mSequelize.sync({force: true});//慎用，会清空数据库所有数据表,然后重新建表
 
@@ -325,6 +381,8 @@ module.exports = new Map([
     , ['DiscountDoc',DiscountDoc] //优惠文案
     , ['Refund', Refund] //退款表
     , ['BackendUser',BackendUser] //后台用户表
+    , ['Order',Order] //订单表表
+    , ['UserDiscountRule',UserDiscountRule] //订单表表
 ]);
 
 
