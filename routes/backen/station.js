@@ -321,6 +321,13 @@ router.post('/', async (ctx, next) => {//新增油站
             , type: type   //油站类型
         })
 
+        let station_id = newStation.id 
+
+        let newCardprefix = await Station.update(
+            { card_prefix : (1000+station_id) },
+            {where :{id : station_id}}
+        );
+        
         ctx.body = {
             status: 0
             , msg: "success"
