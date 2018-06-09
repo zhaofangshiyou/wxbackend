@@ -208,12 +208,12 @@ let UserDiscountRule = mSequelize.define('user_discount_rule', {//折扣表（�
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     , oil_type: DataTypes.STRING       //油的种类
     // , station_id: DataTypes.BIGINT(11)   //油站ID
-    , oil_92: DataTypes.STRING   //92号油的优惠规则
-    , oil_95: DataTypes.STRING   //95号油的优惠规则
-    , oil_98: DataTypes.STRING   //98号油的优惠规则
-    , oil_0: DataTypes.STRING   //0号油的优惠规则
-    , oil_10: DataTypes.STRING   //-10号油的优惠规则
-    , oil_20: DataTypes.STRING   //-20号油的优惠规则
+    , oil_92: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //92号油的优惠规则
+    , oil_95: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //95号油的优惠规则
+    , oil_98: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //98号油的优惠规则
+    , oil_0: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //0号油的优惠规则
+    , oil_10: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //-10号油的优惠规则
+    , oil_20: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //-20号油的优惠规则
     , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
     , discount_type: DataTypes.STRING   //优惠类型，使用哪种优惠规则以此为判断
     , discount_date_start: DataTypes.DATE()   //优惠日期
