@@ -11,15 +11,22 @@ router.prefix(`/${config.VERSION}/token`)
 
 
 router.get('/', async (ctx, next) => {//获取 token
-    console.log("==> get");
-    let userToken = {name: "zone"};
-    let token = jwt.sign(userToken, config.JWT_SECRET, {expiresIn: config.JWT_EXPIRES_IN})
-    console.log(ctx.params.userId)
-    ctx.body = {
-        status: 0
-        , msg: 'success'
-        , data: {
-            token: token
+    try {
+        let userToken = {name: "zone"};
+        let token = jwt.sign(userToken, config.JWT_SECRET, {expiresIn: config.JWT_EXPIRES_IN})
+        console.log(ctx.params.userId)
+        ctx.body = {
+            status: 0
+            , msg: 'success'
+            , data: {
+                token: token
+            }
+        }
+    } catch (e) {
+        console.log(e)
+        ctx.body = {
+            status: 1
+            , msg: 'error'
         }
     }
 })

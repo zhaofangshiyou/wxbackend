@@ -28,42 +28,43 @@ router.use(function (ctx, next) {
 
 // router.use(koa_jwt({config.JWT_SECRET}))
 
-router.post('/', async (ctx, next) => {//新增用户，并记录 openid 的值
-    console.log("==> user");
-
-    console.log(ctx.query)
-    console.log(ctx.request.body)
-
-
-    let {code} = ctx.request.body
-    let res = await wx.getOpenId(code);
-    let {session_key,openid} = JSON.parse(res)
-    console.log("========================")
-    console.log(`session => ${session_key}  openid => ${openid}`)
-    console.log("========================")
-    let user = await User.findOne({
-        where: {
-            open_id: openid
-
-        }
-    })
-    if (!user) {
-        user = await User.create({
-            open_id: openid
-            , welfare_amount: 0      //公益金
-            , total_vol: 0  //累计加油*
-            // mobile:mobile
+router.post('/', async (ctx, next) => {//新增用户，获取用户 openId，获取 user_id
+    try {
+        console.log(ctx.request.body)
+        let {code} = ctx.request.body
+        let res = await wx.getOpenId(code);
+        let {session_key, openid} = JSON.parse(res)
+        console.log("========================")
+        console.log(`session => ${session_key}  openid => ${openid}`)
+        console.log("========================")
+        let user = await User.findOne({
+            where: {
+                open_id: openid
+            }
         })
-    }
+        if (!user) {
+            user = await User.create({
+                open_id: openid
+                , welfare_amount: 0      //公益金
+                , total_vol: 0  //累计加油*
+                // mobile:mobile
+            })
+        }
 
-    ctx.body = {
-        status: 0
-        , msg: 'success'
-        , data: {
-            user: user
+        ctx.body = {
+            status: 0
+            , msg: 'success'
+            , data: {
+                user: user
+            }
+        }
+    } catch (e) {
+        console.log(e)
+        ctx.body = {
+            status: 1
+            , msg: "error"
         }
     }
-
 
 })
 
@@ -91,13 +92,13 @@ router.get('/userId/:userId', async (ctx, next) => {//获取用户信息
     }
 
 })
-router.put('/userId/:userId', async (ctx, next) => {//修改用户信息
+router.put('/userId/:userId', async (ctx, next) => {//完善资料 -- 修改用户信息
     try {
         console.log("==> user");
         console.log(ctx.params)
         console.log(ctx.request.body)
         console.log("==> user");
-        let {name, sex, id_card,car_num ,car_type } = ctx.request.body
+        let {name, sex, id_card, car_num, car_type} = ctx.request.body
         console.log(car_type)
         let userID = ctx.params.userID
         let str = "put requers url params => " + userID + "other params => " + name
@@ -136,11 +137,11 @@ router.put('/userId/:userId', async (ctx, next) => {//修改用户信息
             status: 0
             , msg: "seccess"
         }
-    } catch (error) {
-        console.log(error)
+    } catch (e) {
+        console.log(e)
         ctx.body = {
             status: 1
-            , msg: "update fail"
+            , msg: "error"
         }
     }
 })

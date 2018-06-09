@@ -56,7 +56,7 @@ class WX{
     //小程序 PaySign 2
     getPaySign(appid, nonce_str, package_, signType, timeStamp) {
         let ret = {
-            appid: appid,
+            appId: appid,
             timeStamp: timeStamp.toString(),
             nonceStr: nonce_str,
             package: package_,
@@ -111,6 +111,7 @@ class WX{
     //     openid: 'oxNyk5Ip3PfL4tRiKostDa4nuIro'
     // }
 
+    
     getWxPayOrdrID() {
         let myDate = new Date();
         let year = myDate.getFullYear();

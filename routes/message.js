@@ -64,7 +64,7 @@ router.post('/', async (ctx, next) => {//发送短信
         //     };
         // })
 
-        try{
+        try {
             let res = await smsClient.sendSMS({
                 PhoneNumbers: mobile,
                 SignName: '阿里云短信测试专用',
@@ -84,11 +84,10 @@ router.post('/', async (ctx, next) => {//发送短信
                 };
 
             }
-        }catch (error){
+        } catch (error) {
             ctx.body = {
-                status: 2
+                status: 3
                 , msg: "request more than 5 times"
-                , data: {}
             };
         }
 
@@ -104,33 +103,40 @@ router.post('/', async (ctx, next) => {//发送短信
 
 
 router.get('/', async (ctx, next) => {//验证短信
-    let {mobile, code} = ctx.query
-    console.log("==> " + JSON.stringify(ctx.request.body))
-    if (mobile) {
-        console.log("send message")
-        let result = await smsClient.verifyCode(code,mobile)
-        console.log('code => ' + code + ' result => ' + parseInt(result));
-        if (!result) {
+    try {
+        let {mobile, code} = ctx.query
+        console.log("==> " + JSON.stringify(ctx.request.body))
+        if (mobile) {
+            console.log("send message")
+            let result = await smsClient.verifyCode(code, mobile)
+            console.log('code => ' + code + ' result => ' + parseInt(result));
+            if (!result) {//验证码错误
+                ctx.body = {
+                    status: 2
+                    , msg: "verify code error"
+                }
+                return
+            }
             ctx.body = {
-                status: 1
-                , msg: "bad code"
+                status: 0
+                , msg: 'success'
+                , data: {
+                    verify: result
+                }
             }
-            return
-        }
-        ctx.body = {
-            status: 0
-            , msg: 'success'
-            , data: {
-                verify: result
+        } else {
+            ctx.body = {//手机号错误
+                status: 3
+                , msg: 'mobile num error'
             }
         }
-    } else {
+
+    } catch (e) {
         ctx.body = {
             status: 1
             , msg: 'error'
         }
     }
-
 })
 
 module.exports = router

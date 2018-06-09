@@ -13,6 +13,7 @@ const smsClient = require('./utils/sms')
 const MysqlModel = require('../models/server.mysql.model')
 const Card = MysqlModel.get('Card');
 const User = MysqlModel.get('User');
+const Station = MysqlModel.get('Station');
 router.prefix(`/${config.VERSION}/card`)
 
 router.use(function (ctx, next) {
@@ -27,25 +28,26 @@ router.use(function (ctx, next) {
 });
 
 // router.use(koa_jwt({secret}))
-router.put('/password/userId/:userId', async (ctx, next) => {//0 - 验证码正确，且密码修改成功，1 - 验证码错误，修改失败
+router.put('/password/userId/:userId', async (ctx, next) => {//0 - 验证码正确，且密码修改成功，1 - 程序错误 2 - 验证码错误，修改失败
     try {
         let {code, mobile, password} = ctx.request.body
         let result = await smsClient.verifyCode(code, mobile)
 
         if (!result) {
             ctx.body = {
-                status: 1
-                , msg: "bad code"
+                status: 2
+                , msg: "verify code error"
             }
             return
         }
         let md5 = crypto.createHash('md5')
         password = md5.update(password).digest('hex');
+        console.log(" 加密之后的 password => "+password)
         await Card.update({
             password: password
         }, {
             where: {
-                id: ctx.params.userId
+                user_id: ctx.params.userId
             }
         })
 
@@ -55,9 +57,11 @@ router.put('/password/userId/:userId', async (ctx, next) => {//0 - 验证码正�
             , msg: "success"
         }
     } catch (error) {
+        console.log(error)
+        console.log(" 修改失败 ！")
         ctx.body = {
             status: 1
-            , msg: "update fail"
+            , msg: "error"
         }
     }
 })
@@ -76,10 +80,8 @@ router.get('/userId/:userId', async (ctx, next) => {
             //    model: User
             }]*/
         })
-        console.log("==> get")
+        console.log("==  card ======> get")
         console.log(card)
-
-
         ctx.body = {
             status: 0
             , msg: "success"
@@ -91,17 +93,19 @@ router.get('/userId/:userId', async (ctx, next) => {
         console.log(error)
         ctx.body = {
             status: 1
-            , msg: "fail"
+            , msg: "error"
         }
     }
 })
 
 router.post('/', async (ctx, next) => {//开卡
-    let {user_id, password, unit_card_type, mobile, code, latitude, longitude} = ctx.request.body
+
+    let {user_id, password, unit_card_type, mobile, code, latitude, longitude, station_id} = ctx.request.body
+    console.log("====== 参数 ==>")
     console.log(ctx.request.body)
     if (!mobile) {
         ctx.body = {
-            status: 1
+            status: 2
             , msg: 'mobile invalid'
         }
         return
@@ -115,19 +119,17 @@ router.post('/', async (ctx, next) => {//开卡
         }
         return
     }
-    // await User.update({
-    //     mobile: mobile
-    // }, {
-    //     where: {
-    //         id:
-    //     }
-    // })
-    let card_num;
-    let card_prefix = 1001;
-    let card_prefixs = [1001, 1002, 1003, 1004];
-    let index = Math.floor(Math.random() * 10);
+    // let card_num;
+    // let card_prefix = 1001;
+    // let card_prefixs = [1001, 1002, 1003, 1004];
+    // let index = Math.floor(Math.random() * 10);
 
-
+    let station = await Station.findOne({
+        where: {
+            id: station_id
+        }
+        , attributes: ['card_prefix']
+    })
     let user = await User.findOne({
         where: {
             id: user_id
@@ -139,26 +141,31 @@ router.post('/', async (ctx, next) => {//开卡
     let newCard = await Card.create({
         user_id: user.id     //用户ID
         // , card_num: DataTypes.STRING      //卡号*
-        , card_prefix: card_prefix      //油站编号
+        , card_prefix: station.card_prefix      //油站编号
 
         , person_balance: 0       //个人余额
         , company_balance: 0   //单位余额
         , score: 0  //积分
         , unit_card_type: unit_card_type  //卡类型
         // , parent_id: DataTypes.STRING      //主卡ID
-        // , station_id: station_id      //办卡油站
+        , station_id: station_id      //办卡油站
         , welfare_amount: 0      //公益金
         , password: password      //密码
         , total_vol: 0  //累计加油*
-
     })
+    await User.update({
+        mobile: mobile
+    }, {
+        where: {
+            id: user_id
+        }
+    })
+
+
 
     ctx.body = {
         status: 0
         , msg: "success"
-        // , data: {
-        //     card: newCard
-        // }
     }
 })
 router.put('/:cardId', async (ctx, next) => {

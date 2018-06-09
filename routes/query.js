@@ -10,6 +10,7 @@ const MysqlModel = require('../models/server.mysql.model')
 const ChargeFlow = MysqlModel.get('ChargeFlow');
 const OilFlow = MysqlModel.get('OilFlow');
 const Card = MysqlModel.get('Card');
+const ScoreFlow = MysqlModel.get('ScoreFlow');
 const Station = MysqlModel.get('Station');
 const User = MysqlModel.get('User');
 const secret = config.JWT_SECRET;
@@ -33,11 +34,49 @@ router.use(function (ctx, next) {
 //     ctx.body = token
 // })
 // router.use(koa_jwt({secret}))
-
-router.get('/flow/charge/userId/:userId', async (ctx, next) => {//查,,0-全部 1-个人 2-单位
+router.get('/score/userId/:userId', async (ctx, next) => {//查,,0-全部 1-个人 2-单位
     try {
-        // throw new Error("zone ==> ")
-        console.log("==> get")
+
+        let {page, limit} = ctx.query
+        page--;
+        page < 0 ? page = 0 : page = page
+        limit = parseInt(limit) || 10;
+        console.log("page => " + page)
+        console.log("limit => " + limit)
+        console.log(ctx.params.userId)
+        let options = {}
+        options['user_id'] = parseInt(ctx.params.userId);
+        let {score} = await User.findOne({
+            attributes: ['score']
+            , where: {
+                id: parseInt(ctx.params.userId)
+            }
+        })
+        let scoreFlow = await ScoreFlow.findAll({
+            where: options
+            , offset: page * limit
+            , limit: limit
+        })
+        ctx.body = {
+            status: 0
+            , msg: "success"
+            , data: {
+                score: score
+                , score_flow: scoreFlow
+            }
+        }
+    } catch (error) {
+        console.log(error)
+        ctx.body = {
+            status: 1
+            , message: "error"
+        }
+    }
+});
+
+
+router.get('/flow/charge/userId/:userId', async (ctx, next) => {//获取充值流水 -- 查,, 0 - 个人 1-单位 2-全部
+    try {
         let {page, limit, msg_type} = ctx.query
         page--;
         page < 0 ? page = 0 : page = page
@@ -47,7 +86,7 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//查,,0-全部 
         console.log(ctx.params.userId)
         let options = {}
         options['user_id'] = parseInt(ctx.params.userId);
-        if (msg_type && msg_type != 0) {
+        if (msg_type && msg_type != 2) {
             options['type'] = msg_type;
         }
 
@@ -55,8 +94,11 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//查,,0-全部 
             where: options
             , offset: page * limit
             , limit: limit
-        });
+            , order: [['created_at', 'DESC']]
 
+
+        });
+        console.log(chargeFlow)
         ctx.body = {
             status: 0
             , message: "success"
@@ -68,16 +110,16 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//查,,0-全部 
         console.log(error)
         ctx.body = {
             status: 1
-            , message: "fail"
+            , message: "error"
         }
     }
 
 })
 
 
-router.get('/flow/oil/userId/:userId', async (ctx, next) => {//查,,0-全部 1-个人 2-单位
+router.get('/flow/oil/userId/:userId', async (ctx, next) => {//获取加油流水 -- 查, 0 - 个人 1 -单位 2 - 全部
     try {
-
+        // pay_channel
         console.log("==> get")
         let {page, limit, msg_type} = ctx.query
         page--;
@@ -88,7 +130,7 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//查,,0-全部 1-�
         console.log(ctx.query)
         let options = {}
         options['user_id'] = parseInt(ctx.params.userId);
-        if (msg_type != 0) {
+        if (msg_type != 2) {
             options['pay_channel'] = msg_type;
         }
         console.log(options);
@@ -99,7 +141,36 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//查,,0-全部 1-�
             // }]
             , offset: page * limit
             , limit: limit
+            , order: [['created_at', 'DESC']]
         });
+        oilFlow = JSON.parse(JSON.stringify(oilFlow))
+        oilFlow.forEach((flow, index) => {
+            Station.findOne({
+                where: {
+                    id: flow.station_id
+                }
+                , attributes: ['name']
+            }).then((station) => {
+                console.log("=========================")
+
+                console.log(JSON.stringify(station))
+                // console.log(oilFlow[index])
+                console.log("=========================")
+                oilFlow[index]["name"] ="123123123123123"
+                console.log(oilFlow[index])
+            }).catch((e)=>{
+                console.log(e)
+            })
+
+            if (index==oilFlow.length-1) {
+
+            }
+
+
+        })
+        console.log("111112111111111")
+        console.log("111112111111111")
+
 
         ctx.body = {
             status: 0
@@ -117,10 +188,8 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//查,,0-全部 1-�
     }
 });
 
-router.get('/flow/consume/userId/:userId', async (ctx, next) => {//查,,0-全部 1-个人 2-单位
+router.get('/flow/consume/userId/:userId', async (ctx, next) => {//已/未开发票 -- 查,,0-全部 1-个人 2-单位
     try {
-
-        console.log("==> get")
         let {page, limit, msg_type, is_invoicing} = ctx.query
         page--;
         page < 0 ? page = 0 : page = page
@@ -138,13 +207,11 @@ router.get('/flow/consume/userId/:userId', async (ctx, next) => {//查,,0-全部
         let oilFlow = await OilFlow.findAll({
             where: options
             // , include: [{
-            //     model:Station
-            //     ,through:{
-            //         attribute:['create_at','id','province']
-            //     }
+            //     model: Station
             // }]
             , offset: page * limit
             , limit: limit
+            , order: [['created_at', 'DESC']]
         });
 
         ctx.body = {
@@ -166,20 +233,13 @@ router.get('/flow/consume/userId/:userId', async (ctx, next) => {//查,,0-全部
 
 router.get('/welfareAmount/userId/:userId', async (ctx, next) => {//查
     try {
-
-
         console.log(ctx.params.userId)
-
-
         let user = await  User.findOne({
             where: {
                 id: ctx.params.userId
             }
             , attributes: ['id', 'welfare_amount', 'total_vol']
-
         })
-
-
         ctx.body = {
             status: 0
             , msg: "success"
@@ -187,9 +247,8 @@ router.get('/welfareAmount/userId/:userId', async (ctx, next) => {//查
                 user: user
             }
         }
-
-    } catch (error) {
-        console.log(error)
+    } catch (e) {
+        console.log(e)
         ctx.body = {
             status: 1
             , msg: "fail"

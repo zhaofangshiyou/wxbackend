@@ -25,31 +25,56 @@ router.use(function (ctx, next) {
 // router.use(koa_jwt({secret}))
 
 router.get('/', async (ctx, next) => {//获取油站列表，并返回距离当前地点最近的地址。
-    console.log(ctx.query);
-    let {lat, lon} = ctx.query;
-    console.log("==> " + lat + "  " + lon)
-    let stations = await Station.findAll();
-    console.log(ctx.params.stationId)
-    // {latitude: 22.52291, longitude: 114.05454}, {latitude: 30.926617, longitude: 117.776602}
-    stations.forEach(function (station, index) {
-        let distance = commonUtil.getDistance({latitude: Number(lat), longitude: Number(lon)}, {
-            latitude: station.latitude,
-            longitude: station.longitude
-        });
-        console.log(station.latitude)
-        console.log(station.longitude)
-        console.log(" distance ==> " + distance)
-
-        station['dataValues']['distance'] = distance
-        console.log(station)
-    })
-    ctx.body = ctx.body = {
-        status: 0
-        , msg: "success"
-        , data: {
-            stations: stations
+    try {
+        console.log(ctx.query);
+        let {lat, lon} = ctx.query;
+        let stations = await Station.findAll();
+        console.log(ctx.params.stationId)
+        // {latitude: 22.52291, longitude: 114.05454}, {latitude: 30.926617, longitude: 117.776602}
+        stations.forEach(function (station, index) {
+            let distance = commonUtil.getDistance({latitude: Number(lat), longitude: Number(lon)}, {
+                latitude: station.latitude,
+                longitude: station.longitude
+            });
+            // console.log(station.latitude)
+            // console.log(station.longitude)
+            // console.log(" distance ==> " + distance)
+            station['dataValues']['distance'] = distance
+        })
+        // stations.forEach((station, index) => {
+        //     console.log(' station distance => ' + station['dataValues']['distance'])
+        // })
+        for (let i = 1; i < stations.length; i++) {
+            let j = i;
+            let target = stations[i]
+            // console.log("==========3444444444444===================")
+            // console.log(" 判断 ==>   " + target === stations[i])
+            // console.log(typeof target)
+            // console.log(typeof stations[i])
+            // console.log("==========3444444444444===================")
+            while (j > 0 && target['dataValues']['distance'] < stations[j - 1]['dataValues']['distance']) {
+                console.log("  ==>  " + i + "   j => " + j + "  target => " + target['dataValues']['distance'] + "  j - 1 => " + stations[j - 1]['dataValues']['distance'])
+                stations[j] = stations[j - 1]
+                j--
+            }
+            stations[j] = target
         }
-    };
+        // stations = stations.reverse()
+        ctx.body = {
+            status: 0
+            , msg: "success"
+            , data: {
+                stations: stations
+            }
+        };
+
+    } catch (e) {
+        console.log(e)
+        ctx.body = {
+            status: 1
+            , msg: "error"
+        }
+    }
 })
 
 
