@@ -98,6 +98,7 @@ class BackendUserModel {
     async delCards(id,now){
         let ret = await Card.update(
             {status : 1,
+             score : 0,
              deleted_at : now},
             {where :{
                 id : {[Op.in]:id}
