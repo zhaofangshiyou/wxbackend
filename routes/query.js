@@ -56,7 +56,10 @@ router.get('/score/userId/:userId', async (ctx, next) => {//查,,0-全部 1-个�
             where: options
             , offset: page * limit
             , limit: limit
+            , order: [['created_at', 'DESC']]
+
         })
+        console.log(scoreFlow)
         ctx.body = {
             status: 0
             , msg: "success"

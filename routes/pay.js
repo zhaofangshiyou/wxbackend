@@ -39,6 +39,13 @@ router.use(function (ctx, next) {
 });
 
 router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返回
+    console.log("===========================")
+    console.log("===========================")
+    console.log("===========================")
+    console.log("===========================")
+    console.log("===========================")
+    console.log("===========================")
+
     try {
         let {station_id, gun_id, oil_id, oil_type, write_money, user_id} = ctx.query;
         console.log(ctx.query)
@@ -57,6 +64,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                     id: oil_id
                 }
             })
+            console.log("2222111111222222222222")
 
             let order = await Order.create({
                 user_id: user_id      //用户 id，通过关系生成
@@ -112,24 +120,48 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             };
             return
         }
+        console.log("====> " + data.data.OilRecord[0].Oiltype)
         let {price} = await Oil.findOne({
             attributes: ['price']
             , where: {
                 province_id: 2
+                , name: data.data.OilRecord[0].Oiltype
             }
         })
+        console.log("price ========> " + price)
         let att = common.exchangeOilType(data.data.OilRecord[0].Oiltype);//根据中控系统油品种类转换为自己的油品种类名称 例如：0#柴油 --> oil_0
         console.log(att)
         let attributes = []
         attributes[0] = att
         //根据不同种类的油品的折扣，计算优惠
-        let oilTypeDiscount = await DiscountRule.findOne({
-            attributes: [att]
+        let oilTypeDiscount = await UserDiscountRule.findOne({
+            attributes: [att, 'discount_date_end']
             , where: {
-                station_id: 1
+                station_id: station_id
+                , user_id: user_id
             }
+            , order: [['amount_start', 'DESC']]
         })
-        if (!oilTypeDiscount[att]) {
+        console.log("================ 优惠 =============》》》》。" + JSON.stringify(oilTypeDiscount))
+
+
+        if (oilTypeDiscount == null) {//判断用户没有优惠的情况
+            oilTypeDiscount = {att: 0}
+        } else {
+            let now = new Date();
+            let time = new Date(oilTypeDiscount['discount_date_end'])
+            console.log(" ================>   " + (time.getTime() - now.getTime()))
+            if ((time.getTime() - now.getTime()) > 0) {
+                console.log("============ 有用的优惠 =============")
+            } else {
+                oilTypeDiscount = {att: 0}
+                console.log("============ 没没没没用的优惠 =============")
+
+            }
+
+
+        }
+        if (!oilTypeDiscount[att]) {//判断用户没有优惠的情况
             oilTypeDiscount[att] = 0;
         }
         // let a = {a: 1,e:7}
@@ -160,6 +192,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
         console.log(JSON.stringify(data))
         console.log("==> get")
         let trade_no = wx.getWxPayOrdrID()
+        console.log("2222222222222222")
         let order = await Order.create({
             user_id: user_id      //用户 id，通过关系生成
             , station_id: station_id      //油站 id，通过关系生成
@@ -328,7 +361,7 @@ router.post('/card', async (ctx, next) => {
                 console.log("total_vol 增加之后的 => " + total_vol)
 
                 console.log("welfare_amount 原来 => " + user.welfare_amount)
-                console.log("welfare_amount 增量 => " + (total_vol / 100).toFixed(2))
+                console.log("welfare_amount 增量 => " + (lit / 100).toFixed(2))
                 console.log("welfare_amount => " + welfare_amount)
                 //计算个人卡余额
                 console.log("person_balance 原来 => " + person_balance)
@@ -349,6 +382,7 @@ router.post('/card', async (ctx, next) => {
                 }
                 if (total_vol > 0) {//更新个人加油升数,积分，不能为负数,生成积分流水
                     console.log("====================>  " + welfare_amount)
+                    console.log("================= 存入数据库的 score ===>  " + score)
                     await User.update({
                         total_vol: total_vol
                         , welfare_amount: welfare_amount
@@ -359,7 +393,7 @@ router.post('/card', async (ctx, next) => {
                             id: user_id
                         }
                     })
-                    let score_str = "+ " + score;
+                    let score_str = "+ " + lit;
                     await ScoreFlow.create({
                         user_id: user_id     //用户ID，关联之后，后台生成
                         // , use_place: DataTypes.STRING   //使用地点
@@ -605,6 +639,7 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             console.log("trade_type => " + trade_type)
             console.log("transaction_id => " + transaction_id)
             console.log("===>")
+            total_fee = total_fee / 100//单位由分转化为元
 
             let user = await User.findOne({
                 where: {
@@ -612,14 +647,18 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
                 }
                 , attributes: ['id', 'total_vol', 'score']
             })
+            console.log("==aaaa==> " + out_trade_no)
             let order = await Order.findOne({
                 where: {
-                    trade_no: out_trade_no
+                    user_id: user.id
                 }
                 // , include: [{
                 //     model: Station
                 // }]
             })
+            console.log(order)
+
+            console.log("=============>  " + order)
             let station = await Station.findOne({
                 where: {
                     id: order.station_id
@@ -638,19 +677,19 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
                     user_id: user.id
                 }
             })
-            let score = user.score
-            score += user.total_vol;
-            await User.update({
-                score: score
-            }, {
-                where: {
-                    id: user.id
-                }
-            })
+            // let score = parseFloat(user.score)
+            // score += parseFloat(lit);
+            // await User.update({
+            //     score: score
+            // }, {
+            //     where: {
+            //         id: user.id
+            //     }
+            // })
             //添加消费流水
             let paramter = {}
-            if (amount.good_name) {
-                paramter["oil_type"] = amount.good_name
+            if (order.good_name) {
+                paramter["oil_type"] = order.good_name
             }
             if (order.amount) {
                 paramter["vol"] = order.amount
@@ -663,7 +702,7 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             if (order.pay_money) {
                 paramter["money"] = order.pay_money
             }
-            let poundage = (parseFloat(order.pay_money) / 1000).toFixed(2)
+            let poundage = (parseFloat(total_fee) / 1000 * 3).toFixed(2)
             paramter["poundage"] = poundage
 
             paramter["card_id"] = card.id
@@ -675,19 +714,18 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             }
             if (station.name) {
                 paramter["station_name"] = station.name
-                // }
-                console.log("===============================")
-                console.log(paramter)
-                console.log("===============================")
-                let oilFlow = await OilFlow.create(paramter)
-
-
-                ctx.body =
-                    "<xml>\n" +
-                    "  <return_code><![CDATA[SUCCESS]]></return_code>\n" +
-                    "  <return_msg><![CDATA[OK]]></return_msg>\n" +
-                    "</xml>"
             }
+            console.log("=11==============================")
+            console.log(paramter)
+            console.log("=22==============================")
+            let oilFlow = await OilFlow.create(paramter)
+
+
+            ctx.body =
+                "<xml>\n" +
+                "  <return_code><![CDATA[SUCCESS]]></return_code>\n" +
+                "  <return_msg><![CDATA[OK]]></return_msg>\n" +
+                "</xml>"
         }
         catch (e) {
 
@@ -829,11 +867,7 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
             , poundage: poundage  //手续费
             , card_id: id //卡号
         })
-
-
         //添加优惠券
-
-
         let discountRule = await DiscountRule.findAll({
             where: {
                 station_id: station_id
@@ -842,72 +876,16 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
             , order: [['amount_start', 'DESC']]
 
         })
-        total_fee = 5001
-        // discountRule.every((rule, index) => {
-        //     console.log(" ==> "+index)
-        //     if (index != 0) {
-        //         console.log(" ==> "+discountRule[index - 1].amount_start)
-        //     }
-        //
-        //     // if (index == 0 && total_fee > rule.amount_start) {
-        //     //     console.log("111111111111111111111111111111111111111")
-        //     //     UserDiscountRule.create({
-        //     //         // oil_type: DataTypes.STRING       //油的种类
-        //     //         // , station_id: DataTypes.BIGINT(11)   //油站ID
-        //     //         oil_92: rule.oil_92   //92号油的优惠规则
-        //     //         , oil_95: rule.oil_95   //95号油的优惠规则
-        //     //         , oil_98: rule.oil_98   //98号油的优惠规则
-        //     //         , oil_0: rule.oil_0   //0号油的优惠规则
-        //     //         , oil_10: rule.oil_10   //-10号油的优惠规则
-        //     //         , oil_20: rule.oil_20   //-20号油的优惠规则
-        //     //         // , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
-        //     //         , discount_type: rule.discount_type   //优惠类型，使用哪种优惠规则以此为判断
-        //     //         , discount_date_start: Date.now()   //优惠日期
-        //     //         // , discount_date_end: DataTypes.DATE()   //优惠日期
-        //     //         // , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
-        //     //         , discount_days: rule.discount_days //折扣天数
-        //     //         , is_overlay: "1" //是否可以叠加优惠，0 - 叠加，1 - 不叠加
-        //     //     }).then((udr) => {
-        //     //
-        //     //     }).catch((e) => {
-        //     //         console.log(e)
-        //     //     })
-        //     //     return false;
-        //     // } else if (total_fee > rule.amount_start && total_fee < discountRule[index - 1].amount_start) {
-        //     //     console.log("22222222222222222222222222222222222222222")
-        //     //
-        //     //     UserDiscountRule.create({
-        //     //         // oil_type: DataTypes.STRING       //油的种类
-        //     //         // , station_id: DataTypes.BIGINT(11)   //油站ID
-        //     //         oil_92: rule.oil_92   //92号油的优惠规则
-        //     //         , oil_95: rule.oil_95   //95号油的优惠规则
-        //     //         , oil_98: rule.oil_98   //98号油的优惠规则
-        //     //         , oil_0: rule.oil_0   //0号油的优惠规则
-        //     //         , oil_10: rule.oil_10   //-10号油的优惠规则
-        //     //         , oil_20: rule.oil_20   //-20号油的优惠规则
-        //     //         // , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
-        //     //         , discount_type: rule.discount_type   //优惠类型，使用哪种优惠规则以此为判断
-        //     //         , discount_date_start: Date.now()   //优惠日期
-        //     //         // , discount_date_end: DataTypes.DATE()   //优惠日期
-        //     //         // , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
-        //     //         , discount_days: rule.discount_days //折扣天数
-        //     //         , is_overlay: "1" //是否可以叠加优惠，0 - 叠加，1 - 不叠加
-        //     //     }).then((udr) => {
-        //     //
-        //     //     }).catch((e) => {
-        //     //         console.log(e)
-        //     //     })
-        //     //     return false;
-        //     // }
-        //
-        //
-        // })
-
-        for (let index = 0; index > discountRule.size(); index++) {
-            console.log("============> >>>>>>>>  "+index)
+        total_fee = 8501
+        for (let index = 0; index < discountRule.length; index++) {
+            console.log("============> >>>>>>>>  " + index)
             let rule = discountRule[index];
             if (index == 0 && total_fee > rule.amount_start) {
                 console.log("111111111111111111111111111111111111111")
+                let now = new Date();
+                let dayTime = 24 * 60 * 60 * 1000;
+                let cha = parseInt(rule.discount_days) * dayTime;
+                let end = now.getTime() + cha
                 UserDiscountRule.create({
                     // oil_type: DataTypes.STRING       //油的种类
                     // , station_id: DataTypes.BIGINT(11)   //油站ID
@@ -917,13 +895,15 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
                     , oil_0: rule.oil_0   //0号油的优惠规则
                     , oil_10: rule.oil_10   //-10号油的优惠规则
                     , oil_20: rule.oil_20   //-20号油的优惠规则
-                    // , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
+                    , amount_start: rule.amount_start   //优惠起始金额
                     , discount_type: rule.discount_type   //优惠类型，使用哪种优惠规则以此为判断
                     , discount_date_start: Date.now()   //优惠日期
-                    // , discount_date_end: DataTypes.DATE()   //优惠日期
+                    , discount_date_end: new Date(end)   //优惠日期
                     // , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
                     , discount_days: rule.discount_days //折扣天数
                     , is_overlay: "1" //是否可以叠加优惠，0 - 叠加，1 - 不叠加
+                    , user_id: user.id //
+                    , station_id: station_id //
                 }).then((udr) => {
 
                 }).catch((e) => {
@@ -932,7 +912,6 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
                 break;
             } else if (total_fee > rule.amount_start && total_fee < discountRule[index - 1].amount_start) {
                 console.log("22222222222222222222222222222222222222222")
-
                 UserDiscountRule.create({
                     // oil_type: DataTypes.STRING       //油的种类
                     // , station_id: DataTypes.BIGINT(11)   //油站ID
@@ -942,13 +921,15 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
                     , oil_0: rule.oil_0   //0号油的优惠规则
                     , oil_10: rule.oil_10   //-10号油的优惠规则
                     , oil_20: rule.oil_20   //-20号油的优惠规则
-                    // , amount_start: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //优惠起始金额
+                    , amount_start: rule.amount_start   //优惠起始金额
                     , discount_type: rule.discount_type   //优惠类型，使用哪种优惠规则以此为判断
                     , discount_date_start: Date.now()   //优惠日期
                     // , discount_date_end: DataTypes.DATE()   //优惠日期
                     // , discount: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //折扣
                     , discount_days: rule.discount_days //折扣天数
                     , is_overlay: "1" //是否可以叠加优惠，0 - 叠加，1 - 不叠加
+                    , user_id: user.id //
+                    , station_id: station_id //
                 }).then((udr) => {
 
                 }).catch((e) => {
@@ -978,7 +959,7 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
 router.all('/unifiedorder', async (ctx, next) => {
     try {
         let param = ctx.query || ctx.params;
-        let {openid, pay_target, total_fee, good_description} = ctx.query
+        let {openid, pay_target, total_fee, good_description, oil_type, user_id, pay_mount, oil_mount} = ctx.query
         // let user = await User.findOne({
         //     where:{
         //         id:2

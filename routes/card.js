@@ -114,7 +114,7 @@ router.post('/', async (ctx, next) => {//开卡
     console.log('code => ' + code + ' result => ' + parseInt(result));
     if (code != parseInt(result)) {
         ctx.body = {
-            status: 2
+            status: 3
             , msg: 'wrong code'
         }
         return
