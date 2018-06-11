@@ -36,7 +36,7 @@ class ConsumeModel {
             sql = "SELECT " +
                 "    sta.province as province_name," +
                 "    sta.name as station_name," +
-                "    concat(sta.id + 1000,LPAD(of.card_id,8,0)) as card_no," +
+                "    concat(sta.card_prefix,LPAD(of.card_id,8,0)) as card_no," +
                 "    of.created_at as consume_time," +
                 "    of.oil_gum_num as gum_num," +
                 "    of.oil_type as oil_name, " +
