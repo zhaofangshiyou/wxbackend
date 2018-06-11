@@ -181,7 +181,9 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//获取加油流�
         console.log("111112111111111")
 
         */
-
+        if (msg_type && msg_type ==2 ){
+            msg_type = ""
+        }
        let userId = parseInt(ctx.params.userId);
        let oilFlow = await queryModel.queryOilFlowList(msg_type,userId,"",page,limit)
         ctx.body = {
