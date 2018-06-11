@@ -21,7 +21,7 @@ class InvoiceModel {
     async queryInvoiceList(card_no, page_num ,num){
         let sql = ""
          if (card_no && (card_no != "")) {
-            sql = sql + " and  concat(sta.id+1000,LPAD(of.card_id,8,0)) = :card_no "
+            sql = sql + " and  concat(c.card_prefix,LPAD(of.card_id,8,0)) = :card_no "
          }
 
          let sql_main = " select sta_of.*,u.name as operator_name from "+
