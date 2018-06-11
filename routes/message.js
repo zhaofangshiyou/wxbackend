@@ -67,7 +67,7 @@ router.post('/', async (ctx, next) => {//发送短信
         try {
             let res = await smsClient.sendSMS({
                 PhoneNumbers: mobile,
-                SignName: '阿里云短信测试专用',
+                SignName: "兆方石油",
                 TemplateCode: 'SMS_131365042',
                 TemplateParam: `{"code":"${code}"}`
             });
