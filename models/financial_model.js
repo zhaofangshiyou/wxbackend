@@ -42,7 +42,7 @@ class ConsumeModel {
                 "    of.oil_type as oil_name, " +
                 "    of.vol ," +
                 //"    of.money , " +   应收金额
-                "    (of.money+of.poundage) as money, "+  
+                "    (of.money+of.deduction_amount) as money, "+  
                 "    of.poundage," +
                 "    of.deduction_amount as discount," +
                 "    of.pay_channel as pay_type," +
