@@ -41,7 +41,8 @@ class ConsumeModel {
                 "    of.oil_gum_num as gum_num," +
                 "    of.oil_type as oil_name, " +
                 "    of.vol ," +
-                "    of.money , " +
+                //"    of.money , " +   应收金额
+                "    (of.money+of.poundage) as money, "+  
                 "    of.poundage," +
                 "    of.deduction_amount as discount," +
                 "    of.pay_channel as pay_type," +
@@ -49,7 +50,7 @@ class ConsumeModel {
                 "                         when 1 then '单位卡' " +
                 "                         when 3 then '微信支付' " +
                 "                         else '未定义' end) as pay_channel, " +
-                "    (of.money - of.deduction_amount) as actual_money" +
+                "    (of.money) as actual_money" +
                 "  FROM" +
                 "    stations sta," +
                 "    oil_flows of," +
@@ -59,9 +60,9 @@ class ConsumeModel {
                 "   and of.deleted_at is null ";
         //查找总数
         } else {
-            sql = "SELECT sum(of.money) as money_total," +
+            sql = "SELECT sum((of.money + of.deduction_amount)) as money_total," +
                 "         sum(of.vol) as vol_total," +
-                "         sum((of.money - of.deduction_amount)) as actual_money_total" +
+                "         sum((of.money)) as actual_money_total" +
                 "    FROM" +
                 "       stations sta," +
                 "       oil_flows of" +
@@ -134,8 +135,8 @@ class ConsumeModel {
                 " sta.province as province_name, " +
                 "    sta.name as station_name, " +
                 "    sum(of.vol) as vol , " +
-                "    sum(of.money) as money, " +
-                "    sum((of.money-of.deduction_amount)) as actual_money, " +
+                "    sum((of.money+of.deduction_amount)) as money, " +
+                "    sum(of.money) as actual_money, " +
                 "    now() as currrent_time " +
                 "  FROM " +
                 "    stations sta, " +
@@ -149,8 +150,8 @@ class ConsumeModel {
                 "    sta.name as station_name," +
                 "    of.oil_type  as oil_name," +
                 "    sum(of.vol) as vol ," +
-                "    sum(of.money) as money," +
-                "    sum((of.money-of.deduction_amount)) as actual_money," +
+                "    sum((of.money+of.deduction_amount)) as money," +
+                "    sum(of.money) as actual_money," +
                 "    now() as currrent_time " +
                 " FROM" +
                 "    stations sta," +
@@ -161,8 +162,8 @@ class ConsumeModel {
         } else {
             sql = "SELECT " +
                 "    sum(of.vol)  as vol_total, " +
-                "    sum(of.money) as money_total, " +
-                "    sum((of.money-of.deduction_amount)) as actual_money_total " +
+                "    sum((of.money+of.deduction_amount)) as money_total, " +
+                "    sum(of.money) as actual_money_total " +
                 "  FROM" +
                 "    stations sta," +
                 "    oil_flows of " +
@@ -359,7 +360,7 @@ class ConsumeModel {
         let sql = "select of_sta.sta_id, of_sta.sta_name, sum(of_sta.actual_money) as actual_money,"+
             "   c_sta.station_id,c_sta.station_name "+
             " from (select  sta.id as sta_id,sta.name as sta_name, of.card_id,"+
-            "       sum((of.money-of.deduction_amount)) as actual_money "+
+            "       sum(of.money) as actual_money "+
             "        from  stations sta,  oil_flows of "+
             "    where sta.id = of.station_id  "+
             "      and sta.deleted_at is null " +

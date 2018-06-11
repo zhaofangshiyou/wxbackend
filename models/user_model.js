@@ -171,10 +171,13 @@ class BackendUserModel {
     };
     //个人卡更新积分为0
     async delScore(ids){
-        let sql = "update users u, cards c set u.score = 0 where u.id = c.user_id "+
+
+        let sql1 = "update score_flows sf, users u, cards c set sf.deleted_at = now(),u.score = 0 "+
+                " where u.id = c.user_id and sf.user_id = u.id "+
                 " and c.deleted_at is null and c.id in (" + ids.join() + ")"
-        let ret = await Conn.query(sql,{type: Sequelize.QueryTypes.UPDATE})
-        return ret;
+        let ret1 = await Conn.query(sql1,{type: Sequelize.QueryTypes.UPDATE})
+
+        return ret1;
     };
 }
 
