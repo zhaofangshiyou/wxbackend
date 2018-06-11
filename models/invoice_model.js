@@ -17,6 +17,7 @@ const Op = Sequelize.Op;
 const Conn = require('../db/mysql_connection')
 
 class InvoiceModel {
+    //查找发票记录，包含已注销卡号
     async queryInvoiceList(card_no, page_num ,num){
         let sql = ""
          if (card_no && (card_no != "")) {
@@ -25,7 +26,7 @@ class InvoiceModel {
 
          let sql_main = " select sta_of.*,u.name as operator_name from "+
                     " ( select sta.name as station_name, " +
-                    " concat(sta.id+1000,LPAD(of.card_id,8,0)) as card_no,"+
+                    " concat(c.card_prefix,LPAD(of.card_id,8,0)) as card_no,"+
                     " of.cc_flow_id,"+
                     " date_format(of.created_at,'%Y-%m-%d %H:%i:%s') as consume_time," +
                     " of.oil_type as oil_name,"+
@@ -35,8 +36,8 @@ class InvoiceModel {
                     " (case of.is_invoicing when 1 then '未开' when 0 then '已开' else '未记录' end) as is_invoicing_name,"+
                     " date_format(of.updated_at,'%Y-%m-%d %H:%i:%s') as invoice_time, "+
                     " of.operator "+
-                " from oil_flows of, stations sta "+
-                " where of.station_id = sta.id " +  
+                " from oil_flows of, stations sta, cards c "+
+                " where of.station_id = sta.id and of.card_id = c.id " +  
                 "   and of.deleted_at is null " + sql +
                 " ) sta_of left join backend_users u on sta_of.operator = u.id " ;
 
