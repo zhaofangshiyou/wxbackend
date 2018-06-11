@@ -31,7 +31,7 @@ class ConsumeModel {
         let num = parseInt(options.num)
         let sql = ""
 
-        // 查找明细列表
+        // 查找明细列表，包含被注销的卡
         if (type == 1) {
             sql = "SELECT " +
                 "    sta.province as province_name," +
@@ -45,8 +45,8 @@ class ConsumeModel {
                 "    of.poundage," +
                 "    of.deduction_amount as discount," +
                 "    of.pay_channel as pay_type," +
-                "    (case of.pay_channel when 1 then '个人卡' " +
-                "                         when 2 then '单位卡' " +
+                "    (case of.pay_channel when 0 then '个人卡' " +
+                "                         when 1 then '单位卡' " +
                 "                         when 3 then '微信支付' " +
                 "                         else '未定义' end) as pay_channel, " +
                 "    (of.money - of.deduction_amount) as actual_money" +
@@ -207,7 +207,7 @@ class ConsumeModel {
         return ret;
     };
 
-    //查找充值明细
+    //查找充值明细 ，包含被注销的卡
     async queryRechargeDetailList(options, type){
         let province_id = options.province_id
         let station_id = options.station_id
@@ -229,7 +229,7 @@ class ConsumeModel {
             "  from stations sta, charge_flows cf ,cards c " +
             "  where sta.id = c.station_id " +
             "      and cf.card_id = c.id" +
-            "      and c.deleted_at is null "+
+           // "      and c.deleted_at is null "+
             "      and sta.deleted_at is null "+
             "      and cf.deleted_at is null ";
         //查找总数
@@ -239,7 +239,7 @@ class ConsumeModel {
                 "  from stations sta, charge_flows cf ,cards c " +
                 "  where sta.id = c.station_id " +
                 "      and cf.card_id = c.id " +
-                "      and c.deleted_at is null "+
+          //      "      and c.deleted_at is null "+
                 "      and sta.deleted_at is null "+
                 "      and cf.deleted_at is null ";
         }
@@ -279,72 +279,7 @@ class ConsumeModel {
         return ret;
     };
 
-    //充值汇总
-    /*
-    async queryRechargeList(options, type){
-        let province_id = options.province_id
-        let station_id = options.station_id
-        let page_num = parseInt(options.page_num)
-        let num = parseInt(options.num)
-        let sql = ""
-        let sql_main = ""
-
-        if (province_id && (province_id != "")) {
-            sql = sql + " and sta.province_id = :province_id ";
-        }
-
-        if (station_id && (station_id != "")) {
-            sql = sql + " and sta.id = :station_id ";
-        }
-
-        // 查找列表
-        if (type == 1) {
-            sql_main = "select charge.province_name,charge.station_name,charge.money,charge.poundage," +
-                "      charge.money-consume.actual_money as deposit_money from " ;
-            //查找总数
-        } else {
-            sql_main = "select sum(charge.money) as money_total, sum(charge.poundage) as pondage_total, " +
-                "   sum(charge.money-consume.actual_money) as deposit_money_total from ";
-        }
-
-        let sql_base = "(select sta.province as province_name," +
-            "  sta.name as station_name," +
-            "          sta.id," +
-            "          sum(cf.money) as money," +
-            "          sum(cf.poundage) as poundage " +
-            "  from stations sta, charge_flows cf ,cards c  " +
-            "  where sta.id = c.station_id  " +
-            "      and cf.card_id = c.id  " +
-            "      and c.id = cf.card_id  " +
-            "      and cf.deleted_at is null  " + sql +
-            "      group by sta.province,sta.name,sta.id  order by sta.province desc) charge ,  " +
-            
-            " (select sta.id,  " +
-            " sta.province as province_name,  " +
-            "    sta.name as station_name,  " +
-            "    sum((of.money-of.deduction_amount)) as actual_money  " +
-            "from stations sta, oil_flows of  " +
-            "where sta.id = of.station_id  " +
-            "   and  of.deleted_at is null  " + sql +
-            "group by sta.province,sta.name,sta.id order by sta.province desc ) consume  " +
-            "where charge.id = consume.id ";
-            
-
-        sql_main = sql_main + sql_base
-
-        if (type ==1) {
-            sql_main = sql_main + " order by charge.province_name desc"
-        }
-
-        if ((page_num >= 0) && (num > 0)) {
-            sql_main = sql_main + " limit :page, :num "
-        }
-
-        let ret = await Conn.query(sql_main,{replacements: {province_id:province_id, station_id:station_id,
-             page:(page_num*num), num:num}, type: Sequelize.QueryTypes.SELECT})
-
-        return ret;
-    };*/
+    //充值列表，包含被注销的卡
     async queryRechargeList(options, type){
         let province_id = options.province_id
         let station_id = options.station_id
@@ -378,13 +313,13 @@ class ConsumeModel {
             "  where sta.id = c.station_id  " +
             "      and cf.card_id = c.id  " +
             "      and c.id = cf.card_id  " +
-            "      and c.deleted_at is null "+
+         //   "      and c.deleted_at is null "+
             "      and sta.deleted_at is null "+
             "      and cf.deleted_at is null  " + sql +
             " group by sta.province,sta.name,sta.id ) charge " + 
             " left join " + 
             " (select station_id, sum(company_balance + person_balance) as deposit " +
-            "    from cards where deleted_at is null group by station_id) c "+
+            "    from cards group by station_id) c "+
             "  on c.station_id = charge.id "    
 
         sql_main = sql_main + sql_base
@@ -403,7 +338,7 @@ class ConsumeModel {
         return ret;
     };
 
-    //往来账
+    //往来账，包含被注销的卡
     async queryAccountList(options){
         let begin_time = options.begin_time
         let end_time = options.end_time
@@ -436,7 +371,7 @@ class ConsumeModel {
             "        from stations sta, cards c "+
             "        where sta.id = c.station_id "+
             "           and sta.deleted_at is null " +
-            "           and c.deleted_at is null " +
+            //"           and c.deleted_at is null " +
             "        order by sta.id desc ) c_sta "+
             "        on (c_sta.id = of_sta.card_id ) "+
             "        where of_sta.sta_id <> c_sta.station_id "+
