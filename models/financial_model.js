@@ -222,7 +222,7 @@ class ConsumeModel {
         if (type == 1) {
         sql = "select sta.province as province_name, " +
             "         sta.name as station_name," +
-            "          concat(c.card_prefix + 1000,LPAD(cf.card_id,8,0)) as card_no," +
+            "          concat(c.card_prefix,LPAD(cf.card_id,8,0)) as card_no," +
             "          cf.money," +
             "          cf.poundage," +
             "          cf.created_at as charge_time " +
