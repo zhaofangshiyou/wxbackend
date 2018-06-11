@@ -34,7 +34,7 @@ router.post('/add', async(ctx, next) => {
     try {
         let {province_id, station_ids, discount_type, begin_time, end_time,               
              oil_price, discount_days, amount_start} = ctx.request.body;
-        
+        console.log(JSON.stringify(ctx.request.body))
         if ((!discount_type) || (discount_type == "")) {
             ctx.body = {
                 status : 3,
@@ -92,7 +92,7 @@ router.post('/add', async(ctx, next) => {
                 let row = {};
                 row["discount_type"] = discount_type;
                 row["station_id"] = parseInt(station_id);
-                row["amount_start"] = parseInt(amount_start);
+                row["amount_start"] = parseFloat(amount_start);
                 row["discount_date_start"] = begin_time;
                 row["discount_date_end"] = end_time;
                 row["discount_days"] = parseInt(discount_days);
