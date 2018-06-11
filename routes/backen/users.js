@@ -282,6 +282,7 @@ router.post('/refund/apply/', async (ctx, next) => {
         let options = [];
         let cardType = cardInfo[0].unit_card_type
         let parentId = cardInfo[0].parent_id
+
         if (parentId && (parentId != "") && (parseInt(cardType) ==1)) {
             ctx.body = {
                 status : 4,
@@ -303,7 +304,7 @@ router.post('/refund/apply/', async (ctx, next) => {
         if (parseInt(cardType) == 1){
             let reginRow = {}
             reginRow.card_id = id
-            reginRow.money = (cardInfo[0].company_balance+cardInfo[0].person_balance)
+            reginRow.money = (parseFloat(cardInfo[0].company_balance)+parseFloat(cardInfo[0].person_balance))
             reginRow.initiate_by = initiate_by
             reginRow.status = 1
             options.push(reginRow)
@@ -314,7 +315,7 @@ router.post('/refund/apply/', async (ctx, next) => {
                     ids.push(parseInt(isMainCard[j].id))
                     let row = {}
                     row.card_id = isMainCard[j].id
-                    row.money = (isMainCard[j].company_balance+isMainCard[j].person_balance)
+                    row.money = (parseFloat(isMainCard[j].company_balance)+parseFloat(isMainCard[j].person_balance))
                     row.initiate_by = initiate_by
                     row.status = 1
                     options.push(row)
@@ -328,7 +329,7 @@ router.post('/refund/apply/', async (ctx, next) => {
         } else if(parseInt(cardType) == 0) {
             let reginRow = {}
             reginRow.card_id = id
-            reginRow.money = (cardInfo[0].company_balance+cardInfo[0].person_balance)
+            reginRow.money = (parseFloat(cardInfo[0].company_balance)+parseFloat(cardInfo[0].person_balance))
             reginRow.initiate_by = initiate_by
             reginRow.status = 1
             options.push(reginRow)
