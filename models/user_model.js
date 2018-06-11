@@ -151,7 +151,7 @@ class BackendUserModel {
                   "     u.name, u.open_id, sta.name as station_name, of.vol, of.money,"+
                   "     date_format(of.created_at,'%Y-%m-%d %H:%i:%s') as consume_time,"+
                   "     of.pay_channel as pay_type, "+
-                  "     (case of.pay_channel when 1 then '个人卡' when 2 then '单位卡' "+
+                  "     (case of.pay_channel when 0 then '个人卡' when 1 then '单位卡' "+
                   "      when 3 then '微信支付' end) as pay_channel "+
                   "  from cards c, users u, oil_flows of, stations sta "+
                   " where c.id = of.card_id and of.station_id = sta.id and c.user_id = u.id "
