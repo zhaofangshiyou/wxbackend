@@ -53,7 +53,7 @@ class ConsumeModel {
                 "  FROM" +
                 "    stations sta," +
                 "    oil_flows of," +
-                "    cards c"
+                "    cards c "+
                 " where sta.id = of.station_id " +
                 "   and c.id = of.card_id "+
                 "   and of.deleted_at is null ";
