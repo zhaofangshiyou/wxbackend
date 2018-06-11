@@ -52,7 +52,7 @@ class ConsumeModel {
                 "    (of.money - of.deduction_amount) as actual_money" +
                 "  FROM" +
                 "    stations sta," +
-                "    oil_flows of" +
+                "    oil_flows of," +
                 "    cards c"
                 " where sta.id = of.station_id " +
                 "   and c.id = of.card_id "+
