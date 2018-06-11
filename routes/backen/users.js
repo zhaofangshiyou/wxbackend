@@ -1,5 +1,6 @@
 /* create by miah on 2018/04/08
 * 用户管理
+* 2018-06-11  副卡也是单位卡
 */
 const router = require('koa-router')();
 const config = require('../../config/config')
@@ -187,11 +188,17 @@ router.delete('/card/del', async (ctx, next) => {
 
         ids = JSON.parse(ids);
         let delId = []
+        let updId = []
         for (let i=0; i<ids.length; i++){
             let id = ids[i]
             let cardInfo = await backendUserModel.queryCardById(id);
             if (!cardInfo || cardInfo.length !=1){
                 continue;
+            }
+
+            //个人卡
+            if (cardInfo[0].unit_card_type==0){
+                updId.push(parseInt(id))
             }
 
             let isMainCard = await backendUserModel.querySubCardById(id);
@@ -210,6 +217,10 @@ router.delete('/card/del', async (ctx, next) => {
 
         let now = new Date()
         now = now.toLocaleString()
+        console.log(updId)
+        if (updId && updId.length >0){
+            let ret = await backendUserModel.delScore(updId);
+        }
 
         if (delId && delId.length >0) {
             let ret = await backendUserModel.delCards(delId,now);
@@ -263,7 +274,7 @@ router.post('/refund/apply/', async (ctx, next) => {
         let options = [];
         let cardType = cardInfo[0].unit_card_type
         let parentId = cardInfo[0].parent_id
-        if (parentId && (parentId != "") && (parseInt(cardType) ==0)) {
+        if (parentId && (parentId != "") && (parseInt(cardType) ==1)) {
             ctx.body = {
                 status : 4,
                 msg : "副卡不允许直接退款，必须通过主卡操作."

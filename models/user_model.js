@@ -98,7 +98,6 @@ class BackendUserModel {
     async delCards(id,now){
         let ret = await Card.update(
             {status : 1,
-             score : 0,
              deleted_at : now},
             {where :{
                 id : {[Op.in]:id}
@@ -169,6 +168,13 @@ class BackendUserModel {
             card_id:card_id,num:num},type: Sequelize.QueryTypes.SELECT});
 
         return ret ;
+    };
+    //个人卡更新积分为0
+    async delScore(ids){
+        let sql = "update users u, cards c set u.score = 0 where u.id = c.user_id "+
+                " and c.deleted_at is null and c.id in (" + ids.join() + ")"
+        let ret = await Conn.query(sql,{type: Sequelize.QueryTypes.UPDATE})
+        return ret;
     };
 }
 
