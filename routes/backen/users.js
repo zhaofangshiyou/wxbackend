@@ -196,6 +196,14 @@ router.delete('/card/del', async (ctx, next) => {
                 continue;
             }
 
+            if (parseFloat(cardInfo[0].person_balance) != 0 || parseFloat(cardInfo[0].company_balance) != 0){
+                ctx.body = {
+                    status : 3,
+                    msg : "未退款卡号不能注销."
+                }
+                return ;
+            }
+
             //个人卡
             if (cardInfo[0].unit_card_type==0){
                 updId.push(parseInt(id))
