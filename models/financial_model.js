@@ -36,7 +36,7 @@ class ConsumeModel {
             sql = "SELECT " +
                 "    sta.province as province_name," +
                 "    sta.name as station_name," +
-                "    concat(sta.card_prefix,LPAD(of.card_id,8,0)) as card_no," +
+                "    concat(c.card_prefix,LPAD(of.card_id,8,0)) as card_no," +
                 "    of.created_at as consume_time," +
                 "    of.oil_gum_num as gum_num," +
                 "    of.oil_type as oil_name, " +
@@ -53,7 +53,9 @@ class ConsumeModel {
                 "  FROM" +
                 "    stations sta," +
                 "    oil_flows of" +
+                "    cards c"
                 " where sta.id = of.station_id " +
+                "   and c.id = of.card_id "+
                 "   and of.deleted_at is null ";
         //查找总数
         } else {
