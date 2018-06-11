@@ -13,6 +13,7 @@ const Card = MysqlModel.get('Card');
 const ScoreFlow = MysqlModel.get('ScoreFlow');
 const Station = MysqlModel.get('Station');
 const User = MysqlModel.get('User');
+const queryModel = require('../models/query_model');
 const secret = config.JWT_SECRET;
 router.prefix(`/${config.VERSION}/query`)
 
@@ -87,6 +88,7 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//获取充值�
         console.log("page => " + page)
         console.log("limit => " + limit)
         console.log(ctx.params.userId)
+        /*
         let options = {}
         options['user_id'] = parseInt(ctx.params.userId);
         if (msg_type && msg_type != 2) {
@@ -102,6 +104,9 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//获取充值�
 
         });
         console.log(chargeFlow)
+        */
+       let userId = parseInt(ctx.params.userId);
+       let chargeFlow = await queryModel.queryChargeFlowList(msg_type,userId,page,limit)
         ctx.body = {
             status: 0
             , message: "success"
@@ -131,6 +136,7 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//获取加油流�
         console.log(limit)
         console.log(ctx.params.userId)
         console.log(ctx.query)
+        /*
         let options = {}
         options['user_id'] = parseInt(ctx.params.userId);
         if (msg_type != 2) {
@@ -174,7 +180,10 @@ router.get('/flow/oil/userId/:userId', async (ctx, next) => {//获取加油流�
         console.log("111112111111111")
         console.log("111112111111111")
 
+        */
 
+       let userId = parseInt(ctx.params.userId);
+       let oilFlow = await queryModel.queryOilFlowList(msg_type,userId,"",page,limit)
         ctx.body = {
             status: 0
             , msg: "success"
@@ -200,6 +209,7 @@ router.get('/flow/consume/userId/:userId', async (ctx, next) => {//已/未开发
         console.log(limit)
         console.log(ctx.params.userId)
         console.log(ctx.query)
+        /*
         let options = {}
         options['user_id'] = parseInt(ctx.params.userId);
         options['is_invoicing'] = is_invoicing;
@@ -216,11 +226,13 @@ router.get('/flow/consume/userId/:userId', async (ctx, next) => {//已/未开发
             , limit: limit
             , order: [['created_at', 'DESC']]
         });
-
+        */
+       let userId = parseInt(ctx.params.userId);
+       let oilFlow = await queryModel.queryOilFlowList(msg_type,userId,is_invoicing,page,limit)
         ctx.body = {
             status: 0
             , msg: "success"
-            , data: {
+            , data: { 
                 flow: oilFlow
             }
         }
