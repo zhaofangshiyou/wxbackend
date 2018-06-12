@@ -29,6 +29,17 @@ class AuthModel {
         })
         return ret ;
     };
+
+    async queryUserById(id){
+        let ret = await BackendUser.findAll({
+            attributes : ["id","login","name",["permissions","authId"],"admin","role"],
+            where : {
+                id : id
+            },
+            limit : 1
+        })
+        return ret ;
+    };
 }
 
 let authModel = new AuthModel;

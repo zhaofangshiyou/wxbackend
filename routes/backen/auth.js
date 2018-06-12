@@ -65,5 +65,32 @@ router.post('/login', async (ctx, next) => {
     }
 })
 
+router.get('/user/:id', async (ctx, next) => {
+    try {
+        let id = ctx.params.id
+
+        let ret = await authModel.queryUserById(id);
+        if (!ret || (ret.length != 1)){
+            ctx.body = {
+                status : 3,
+                msg : "无此用户信息."
+            }
+            return ;
+        }
+
+        ctx.body = {
+            status : 0,
+            msg : "success",
+            data : ret[0]
+        }
+
+    }catch(error){
+        ctx.body = {
+            status : 1,
+            msg : "内部程序错误."
+        }
+    }
+})
+
 
 module.exports = router
