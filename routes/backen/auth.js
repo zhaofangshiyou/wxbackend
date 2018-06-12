@@ -65,10 +65,11 @@ router.post('/login', async (ctx, next) => {
     }
 })
 
-router.get('/user/:id', async (ctx, next) => {
+router.get('/user', async (ctx, next) => {
     try {
-        let id = ctx.params.id
+        let {id} = ctx.query
 
+        id = parseInt(id)
         let ret = await authModel.queryUserById(id);
         if (!ret || (ret.length != 1)){
             ctx.body = {
