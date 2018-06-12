@@ -38,6 +38,7 @@ class QueryModel {
             sql = sql + " and of.is_invoicing = :is_invoicing "
         }
 
+        sql = sql + " order by of.created_at desc "
         if((page_num>=0) && (num>0)) {
             sql = sql + " limit :page, :num";
         }
@@ -65,6 +66,7 @@ class QueryModel {
             sql = sql + " and u.id = :id "
         }
 
+        sql = sql + " order by of.created_at desc "
         if((page_num>=0) && (num>0)) {
             sql = sql + " limit :page, :num";
         }
