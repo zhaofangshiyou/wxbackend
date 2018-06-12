@@ -106,6 +106,9 @@ router.get('/flow/charge/userId/:userId', async (ctx, next) => {//获取充值�
         console.log(chargeFlow)
         */
        let userId = parseInt(ctx.params.userId);
+       if (msg_type && msg_type ==2 ){
+            msg_type = ""
+        }
        let chargeFlow = await queryModel.queryChargeFlowList(msg_type,userId,page,limit)
         ctx.body = {
             status: 0
