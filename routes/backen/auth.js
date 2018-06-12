@@ -48,6 +48,7 @@ router.post('/login', async (ctx, next) => {
                 status : 3,
                 msg : "用户名或密码错误."
             }
+            return ;
         }
 
         ctx.body = {
