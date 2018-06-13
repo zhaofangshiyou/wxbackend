@@ -52,7 +52,7 @@ class StationModel {
     async queryStationList(province_id,station_id, page_num, num){
 
         let sql = " select sta.id, sta.name, sta.province, sta.oil_gum_nums, sta.province_id, sta.city,sta.type, " +
-            " (case sta.type when 1 then '自有' when 2 then '共享' end) as station_type,"+
+            " (case sta.type when 1 then '自有' when 2 then '共享' end) as station_type,sta.address"+
             " 1000+sta.id as station_id, group_concat(oi.name separator '、') as oil_list" +
             " from  stations sta  left join oil_infos oi " +
             " on find_in_set(oi.id, sta.oil_list) " +

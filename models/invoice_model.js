@@ -62,9 +62,9 @@ class InvoiceModel {
         return ret;
     };
 
-    async addInvoice(cc_flow_id,operator){
+    async addInvoice(cc_flow_id,operator,type){
         let ret = await OilFlow.update({
-                is_invoicing : 0,
+                is_invoicing : type,
                 operator : operator,
                 oil_id : operator
             },

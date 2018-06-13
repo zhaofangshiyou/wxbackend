@@ -85,10 +85,10 @@ router.get('/invoice', async (ctx, next) => {
 
 router.post('/invoice', async (ctx, next) => {
     try {
-        let {cc_flow_id, user_id} = ctx.request.body
-        let params = {cc_flow_id,user_id}
-
-        if (commonUtil.reqParamsIsNull(params)) {
+        let {cc_flow_id, user_id, act} = ctx.request.body
+        let params = {cc_flow_id,user_id,act}
+        let actParam = ["open","revoke"]
+        if (commonUtil.reqParamsIsNull(params) || (!commonUtil.strInArray(act,actParam))) {
             ctx.body = {
                 status : 2,
                 msg : "传入参数错误." 
@@ -116,15 +116,29 @@ router.post('/invoice', async (ctx, next) => {
             return ;
         }
 
-        if (oilFlowInfo[0].is_invoicing == 0) {
-            ctx.body = {
-                status : 4,
-                msg : "该流水码已经开过发票，请确认." 
+        let ret
+        if (act == "open"){
+            if (oilFlowInfo[0].is_invoicing == 0) {
+                ctx.body = {
+                    status : 4,
+                    msg : "该流水码已经开过发票，请确认." 
+                }
+                return ;
             }
-            return ;
+
+            ret = await invoiceModel.addInvoice(cc_flow_id,user_id,1);
+        } else if(act == "revoke") {
+            if (oilFlowInfo[0].is_invoicing == 1) {
+                ctx.body = {
+                    status : 6,
+                    msg : "该流水码没有开过发票，请确认." 
+                }
+                return ;
+            }
+
+            ret = await invoiceModel.addInvoice(cc_flow_id,user_id,0);
         }
 
-        let ret = await invoiceModel.addInvoice(cc_flow_id,user_id);
         ctx.body = {
             status : 0,
             msg : "success",
