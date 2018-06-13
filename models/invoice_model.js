@@ -18,10 +18,14 @@ const Conn = require('../db/mysql_connection')
 
 class InvoiceModel {
     //查找发票记录，包含已注销卡号
-    async queryInvoiceList(card_no, page_num ,num){
+    async queryInvoiceList(card_no,flag, page_num ,num){
         let sql = ""
          if (card_no && (card_no != "")) {
             sql = sql + " and  concat(c.card_prefix,LPAD(of.card_id,8,0)) = :card_no "
+         }
+
+         if (type && (type != "")) {
+            sql = sql + " and of.is_invoicing = :flag "
          }
 
          let sql_main = " select sta_of.*,u.name as operator_name from "+
@@ -45,7 +49,7 @@ class InvoiceModel {
             sql_main = sql_main + "  limit :page, :num"
         }
 
-        let ret = await Conn.query(sql_main,{replacements: {card_no:card_no, page:(page_num*num), num:num},
+        let ret = await Conn.query(sql_main,{replacements: {card_no:card_no,flag:flag, page:(page_num*num), num:num},
             type: Sequelize.QueryTypes.SELECT})
 
         return ret;
@@ -62,11 +66,10 @@ class InvoiceModel {
         return ret;
     };
 
-    async addInvoice(cc_flow_id,operator,type){
+    async addInvoice(cc_flow_id,operator,flag){
         let ret = await OilFlow.update({
-                is_invoicing : type,
-                operator : operator,
-                oil_id : operator
+                is_invoicing : flag,
+                operator : operator
             },
             {where :{
                 cc_flow_id : cc_flow_id
