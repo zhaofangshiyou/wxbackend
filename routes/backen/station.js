@@ -422,7 +422,7 @@ router.put('/upd/:stationId', async (ctx, next) => {
         }
 
         //如果详细地址变更，第三方接口找经纬度
-        if (address && (address != station_id[0].address)) {
+        if (address && (address != station_info[0].address)) {
             var options = {
                 uri: 'http://restapi.amap.com/v3/geocode/geo',
                 qs: {
