@@ -24,7 +24,7 @@ class InvoiceModel {
             sql = sql + " and  concat(c.card_prefix,LPAD(of.card_id,8,0)) = :card_no "
          }
 
-         if (type && (type != "")) {
+         if (flag && (flag != "")) {
             sql = sql + " and of.is_invoicing = :flag "
          }
 
