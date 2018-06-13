@@ -4,9 +4,9 @@
  */
 class Common {
     //计算两个经纬度的距离，单位精确到 m/米
-     getDistance({latitude: lat1, longitude: lng1}, {latitude: lat2, longitude: lng2}) {
-         // console.log(typeof lat1)
-         // console.log(typeof lng1)
+    getDistance({latitude: lat1, longitude: lng1}, {latitude: lat2, longitude: lng2}) {
+        // console.log(typeof lat1)
+        // console.log(typeof lng1)
         let deg2rad = (deg) => deg * (Math.PI / 180)
         let R = 6371 // Radius of the earth in km
         let dLat = deg2rad(parseFloat(lat2) - parseFloat(lat1))  // deg2rad below
@@ -19,22 +19,22 @@ class Common {
         return Math.round(R * c * 1000) // Distance in m
     }
 
-     //与中控系统 oil_type 进行转换
-    exchangeOilType(oil_type){
-         let map = new Map([
-             ['0#柴油', "oil_0"]//
-             , ['92#汽油', "oil_92"]//
-             , ['95#汽油', "oil_98"]//
-             , ['98#汽油', "oil_98"]//
-             , ['-10#柴油', "oil_10"]//
-             , ['-20#柴油', "oil_20"]//
+    //与中控系统 oil_type 进行转换
+    exchangeOilType(oil_type) {
+        let map = new Map([
+            ['0#柴油', "oil_0"]//
+            , ['92#汽油', "oil_92"]//
+            , ['95#汽油', "oil_98"]//
+            , ['98#汽油', "oil_98"]//
+            , ['-10#柴油', "oil_10"]//
+            , ['-20#柴油', "oil_20"]//
 
-         ]);
+        ]);
         return map.get(oil_type);
     }
 
-     //获取随机数
-     getRandomInt() {
+    //获取随机数
+    getRandomInt() {
         let num = Math.floor(Math.random() * 10);
         return num;
     }
@@ -47,7 +47,7 @@ class Common {
         }
 
         for (var i in params) {
-            if ((!params[i]) || (params[i]=="")){
+            if ((!params[i]) || (params[i] == "")) {
                 return result;
             }
         }
@@ -55,7 +55,7 @@ class Common {
         return result;
     };
 
-     //字符串是否json格式
+    //字符串是否json格式
     isJsonString(str) {
         try {
             JSON.parse(str);
@@ -66,9 +66,9 @@ class Common {
     };
 
     //准确判断某个值是否在数组里面 ,存在为true
-    strInArray(str,array){
-        for (let i=0; i<array.length; i++){
-            if(array[i] == str){
+    strInArray(str, array) {
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] == str) {
                 return true
             } else {
                 continue;
@@ -78,26 +78,28 @@ class Common {
     };
 
     //excel映射
-    getExcelHeader(head,map){
+    getExcelHeader(head, map) {
         let ret = []
-        for (let i=0; i<head.length; i++){
-            for (let k in map){
+        for (let i = 0; i < head.length; i++) {
+            for (let k in map) {
                 if (head[i] == k) {
                     ret.push(map[k])
                 } else {
-                    continue;s
+                    continue;
+                    s
                 }
             }
         }
         return ret;
     };
-    getExcelData(map,data){
+
+    getExcelData(map, data) {
         let ret = []
-        for (let i=0; i<data.length; i++){
+        for (let i = 0; i < data.length; i++) {
             let row = {}
-            for (let k in map){
+            for (let k in map) {
                 let v = map[k]
-                for (let k1 in data[i]){
+                for (let k1 in data[i]) {
                     if (k == k1) {
                         row[v] = data[i][k]
                     } else {
@@ -107,9 +109,24 @@ class Common {
             }
             ret.push(row)
         }
-        return ret ;
+        return ret;
     };
-    
+
+    setParamter(paramter) {
+        let result = {}
+        for (let [key, value] in paramter) {
+            console.log(key+"  "+paramter[key])
+            if (paramter[key]) {
+                result[key] = value
+                console.log("paranter has " + key + "  " + paramter[key])
+
+            } else {
+                console.log("paranter doesn`t has " + key)
+            }
+        }
+        return result;
+    }
+
 }
 
 let common = new Common();

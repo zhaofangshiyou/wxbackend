@@ -18,6 +18,20 @@ class CenterCtrl {
         };
         let base64Param = new Buffer(JSON.stringify(requestParam)).toString('base64');
         let url = config.CC_BASE_URL + config.CC_UTL_PATH + base64Param.replace(/\//g, '_');
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=========================== "+config.CC_BASE_URL)
         return url;
     }
 

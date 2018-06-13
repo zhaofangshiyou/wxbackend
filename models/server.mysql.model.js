@@ -60,7 +60,7 @@ let Card = mSequelize.define('card', {//卡表
 let OilFlow = mSequelize.define('oil_flow', {//加油流水,消费
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
     // , user_id: DataTypes.BIGINT(11)     //用户ID
-    , money: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //加油金额
+    , money: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //实收金额
     , oil_type: DataTypes.STRING  //油品类别
     , vol: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}  //升数，加油生数
     , pay_channel: DataTypes.STRING      //支付通道（1 - 个人卡，2 - 单位卡，3 - 微信支付）
@@ -167,7 +167,7 @@ let Oil = mSequelize.define('oil', {//油品表,确定不是油价表吗？
     , name: DataTypes.STRING       //油品名
     , price: {type: DataTypes.DECIMAL(10, 2), defaultValue: 0}   //油价
     , active_at: DataTypes.STRING   //生效时间
-    , province_id: DataTypes.INTEGER   //省份
+    // , province_id: DataTypes.INTEGER   //省份
     , city: DataTypes.STRING   //城市
     , oil_id: DataTypes.INTEGER
     // , userId: {type: DataTypes.INTEGER, field: 'userId', allowNull: false, comment: '用户Id'}
@@ -177,6 +177,9 @@ let Oil = mSequelize.define('oil', {//油品表,确定不是油价表吗？
     , paranoid: true//虚拟删除。启用该配置后，数据不会真实删除，而是添加一个deleted_at属性
 
 });
+
+
+
 
 let DiscountRule = mSequelize.define('discount_rule', {//折扣表（该表有两种优惠类型，一种为按油品类进行优惠，一种按日期进行优惠）
     id: {type: DataTypes.BIGINT(11), autoIncrement: true, primaryKey: true, unique: true, comment: '主键'}
@@ -323,6 +326,9 @@ let Order = mSequelize.define('order', {//订单表
     , price: DataTypes.STRING  //单价
     , amount: DataTypes.STRING      //数量
     , discount: DataTypes.STRING      //折扣
+    , gun_id: DataTypes.STRING      //油枪号
+    , oil_id: DataTypes.STRING      //oil_id
+    , come_channel: DataTypes.STRING      //从第三方进入的通道
 }, {
     timestamps: true//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
     , underscored: true//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
@@ -354,16 +360,42 @@ User.hasMany(ScoreFlow, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(Discount, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(Order, {foreignKey: 'user_id', targetKey: 'id'});
 User.hasMany(UserDiscountRule, {foreignKey: 'user_id', targetKey: 'id'});
+
+
 Region.hasMany(Oil, {foreignKey: 'province_id', targetKey: 'id'});
 
-OilFlow.sync();
-ChargeFlow.sync();
+// OilFlow.sync();
+// ChargeFlow.sync();
 // User.sync({force: true});
 // DiscountRule.sync({force: true});
 // Order.sync({force: true});
 // UserDiscountRule.sync({force: true});
+
+// OilInfo.sync({force: true});
+// Region.sync({force: true});
+// Station.sync({force: true});
+// BackendUser.sync({force: true});
+// OilGum.sync({force: true});
+// DiscountRule.sync({force: true});
+// DiscountDoc.sync({force: true});
+
+
+// User.sync({force: true});
+// Card.sync({force: true});
+// OilFlow.sync({force: true});
+// ChargeFlow.sync({force: true});
+// ScoreFlow.sync({force: true});
+// // Discount.sync({force: true});
+// Refund.sync({force: true});
+// Order.sync({force: true});
+// UserDiscountRule.sync({force: true});
+
+
+
+
 mSequelize.sync();
 // mSequelize.sync({force: true});//慎用，会清空数据库所有数据表,然后重新建表
+
 
 module.exports = new Map([
     ['User', User]//用户表
