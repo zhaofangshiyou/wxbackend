@@ -339,7 +339,7 @@ class ConsumeModel {
         return ret;
     };
 
-    //往来账，包含被注销的卡
+    //往来账，包含被注销的卡，不包含微信支付
     async queryAccountList(options){
         let begin_time = options.begin_time
         let end_time = options.end_time
@@ -364,6 +364,7 @@ class ConsumeModel {
             "        from  stations sta,  oil_flows of "+
             "    where sta.id = of.station_id  "+
             "      and sta.deleted_at is null " +
+            "      and of.pay_channel <> 3 "+
             "      and of.deleted_at is null " + sql_param +
             "    group by sta.name,sta.id  ,of.card_id "+
             "        order by sta.id desc ) of_sta "+
