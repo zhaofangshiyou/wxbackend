@@ -21,7 +21,7 @@ class QueryModel {
     //发票
     async queryOilFlowList(msg_type,userId,is_invoicing,page_num,num){
 
-        let sql = "SELECT of.* , caoncat(c.card_prefix, LPAD(c.id,8,0)) as card_no from oil_flows of , cards c ,users u"+
+        let sql = "SELECT of.* , concat(c.card_prefix, LPAD(c.id,8,0)) as card_no from oil_flows of , cards c ,users u"+
                 " where of.card_id = c.id and of.deleted_at is null "+
                 "   and c.deleted_at is null and u.id = c.user_id  "+
                 "   and u.deleted_at is null "
