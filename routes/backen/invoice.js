@@ -29,14 +29,14 @@ router.use(function (ctx, next) {
 
 router.get('/invoice', async (ctx, next) => {
     try {
-        let {act, card_no, page_num, num, type} = ctx.query
+        let {act, card_no, page_num, num, type, station_id} = ctx.query
 
         num = (num && (parseInt(num)>=0)) ? parseInt(num) : 15;  //默认15条
         page_num = (page_num && (parseInt(page_num)>=1)) ? (parseInt(page_num)-1) : 0;  //默认从第一条开始
 
-        let invoiceList = await invoiceModel.queryInvoiceList(card_no, type,page_num ,num)
+        let invoiceList = await invoiceModel.queryInvoiceList(card_no, type,page_num ,num,station_id)
 
-        let invoiceCnt = await invoiceModel.queryInvoiceList(card_no,type, page_num ,0)
+        let invoiceCnt = await invoiceModel.queryInvoiceList(card_no,type, page_num ,0,station_id)
 
         if (act && act == "export") {
             let filename = 'invoice_list_' + (new Date().toLocaleDateString());

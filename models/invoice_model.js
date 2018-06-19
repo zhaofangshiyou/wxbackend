@@ -18,7 +18,7 @@ const Conn = require('../db/mysql_connection')
 
 class InvoiceModel {
     //查找发票记录，包含已注销卡号
-    async queryInvoiceList(card_no,flag, page_num ,num){
+    async queryInvoiceList(card_no,flag, page_num ,num,station_id){
         let sql = ""
          if (card_no && (card_no != "")) {
             sql = sql + " and  concat(c.card_prefix,LPAD(of.card_id,8,0)) = :card_no "
@@ -26,6 +26,10 @@ class InvoiceModel {
 
          if (flag && (flag != "")) {
             sql = sql + " and of.is_invoicing = :flag "
+         }
+
+         if (station_id && (station_id != "")) {
+            sql = sql + " and of.station_id = :station_id "
          }
 
          let sql_main = " select sta_of.*,u.name as operator_name from "+
@@ -49,8 +53,8 @@ class InvoiceModel {
             sql_main = sql_main + "  limit :page, :num"
         }
 
-        let ret = await Conn.query(sql_main,{replacements: {card_no:card_no,flag:flag, page:(page_num*num), num:num},
-            type: Sequelize.QueryTypes.SELECT})
+        let ret = await Conn.query(sql_main,{replacements: {card_no:card_no,flag:flag, page:(page_num*num), num:num,
+            station_id:parseInt(station_id)},type: Sequelize.QueryTypes.SELECT})
 
         return ret;
     };
