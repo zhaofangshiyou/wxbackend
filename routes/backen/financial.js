@@ -288,11 +288,13 @@ router.get('/recharge', async (ctx, next) => {
                 for (let k in rechargeListCnt[0]) {
                    headers.push(k)    
                 } 
+                /*
                 for (let i=0; i<rechargeListCnt.length; i++) {
                     let time = rechargeListCnt[i].charge_time;
                     time = time.toLocaleString();
                     rechargeListCnt[i].charge_time = time;
                 }
+                */
                 data = rechargeListCnt 
 
                 let languageCH = ExcelMap.languageCH();
