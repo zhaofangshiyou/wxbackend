@@ -38,15 +38,65 @@ router.use(function (ctx, next) {
     });
 });
 
-router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返回
-    console.log("===========================")
-    console.log("===========================")
-    console.log("===========================")
-    console.log("===========================")
-    console.log("===========================")
-    console.log("===========================")
+router.get('/flow/orders', async (ctx, next) => {//在此处生成订单，并返回
     try {
-        let {station_id, gun_id, oil_id, oil_type, write_money, user_id} = ctx.query;
+        let {station_id, gun_id} = ctx.query;
+        let data = await ct.getUnpayOrder(station_id, gun_id)//获取流水信息
+        if (typeof data.data == "string") {//判断 station_id gun_id 是否合法
+            if (data.data == "站号错误2") {
+                ctx.body = {
+                    status: 2
+                    , msg: "station_id 错误，" + data.data
+                };
+            } else if (data.data == "获取流水错误") {
+                ctx.body = {
+                    status: 3
+                    , msg: "gun_id 错误，" + data.data
+                };
+            } else if (data.data == "无此记录") {
+                ctx.body = {
+                    status: 5
+                    , msg: "no record" + data.data
+                };
+            } else {
+                ctx.body = {
+                    status: 6
+                    , msg: "other error"
+                };
+            }
+            return
+        } else if (data.data.OilRecord.length <= 0) {
+            ctx.body = {
+                status: 4
+                , msg: "no flow data."
+            };
+            return
+        }
+        let flow = data.data.OilRecord;
+        console.log("orders ====>  " + JSON.stringify(flow))
+        if (flow.length > 3) {
+            flow = flow.slice(0, 3);
+        }
+        ctx.body = {
+            status: 0
+            , msg: "success"
+            , data: {
+                flow: flow
+            }
+        };
+    } catch (e) {
+        console.log(e)
+        ctx.body = {
+            status: 1
+            , msg: "error"
+        };
+    }
+})
+
+
+router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返回
+    try {
+        let {station_id, gun_id, oil_id, oil_type, write_money, user_id, Fluid} = ctx.query;
         console.log(ctx.query)
         let {name, type} = await Station.findOne({
             attributes: ['name', 'type']
@@ -54,8 +104,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                 id: parseInt(station_id)
             }
         })
-        console.log("===========================")
-        console.log(type)
+        console.log(" 油站类型（共享/自有）：" + type)
         if (oil_id && write_money) {//共享油站的处理分支
             let oilInfo = await OilInfo.findOne({
                 attributes: ['name']
@@ -63,12 +112,11 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                     id: oil_id
                 }
             })
-            console.log("2222111111222222222222")
-
+            let trade_no = wx.getWxPayOrdrID()
             let order = await Order.create({
                 user_id: user_id      //用户 id，通过关系生成
                 , station_id: station_id      //油站 id，通过关系生成
-                , trade_no: wx.getWxPayOrdrID()      //订单号
+                , trade_no: trade_no      //订单号
                 , pay_status: "1"       //支付状态 0 - 支付，1 - 未支付
                 , mount: write_money       //未参加优惠金额
                 , pay_mount: write_money       //实际支付金额
@@ -95,6 +143,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                     , name: name
                     , station_type: type
                     , time: order.created_at
+                    , trade_no: trade_no
                 }
             };
             return
@@ -114,18 +163,13 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                     , msg: "gun_id 错误，" + data.data
                 };
             } else if (data.data == "无此记录") {
-
-                console.log("=======================11111111111111111")
-                console.log("=======================11111111111111111")
-                console.log("=======================11111111111111111")
-                console.log("=======================11111111111111111")
                 ctx.body = {
-                    status: 3
+                    status: 5
                     , msg: "no record" + data.data
                 };
             } else {
                 ctx.body = {
-                    status: 3
+                    status: 6
                     , msg: "other error"
                 };
             }
@@ -137,19 +181,33 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             };
             return
         }
-        console.log("====> " + data.data.OilRecord[0].Oiltype)
+        console.log("生成订单 通过中控流水号来定位支付的订单 1")
+
+        let ccRecord;
+        if (Fluid) {
+            data.data.OilRecord.forEach((record, index) => {
+                if (Fluid && record.Fluid && Fluid == record.Fluid) {
+                    ccRecord = record;
+                    console.log("生成订单 通过中控流水号来定位支付的订单 2")
+                }
+            })
+        }
+        console.log("生成订单 通过中控流水号来定位支付的订单 3")
+
+        let oilRecord = ccRecord;
+        console.log("====> " + oilRecord.Oiltype)
         console.log("====> ")
         console.log("====> ")
-        console.log("====> " + data.data.OilRecord[0])
+        console.log("====> " + oilRecord)
         let {price} = await Oil.findOne({
             attributes: ['price']
             , where: {
                 province_id: 2
-                , name: data.data.OilRecord[0].Oiltype
+                , name: oilRecord.Oiltype
             }
         })
         console.log("price ========> " + price)
-        let att = common.exchangeOilType(data.data.OilRecord[0].Oiltype);//根据中控系统油品种类转换为自己的油品种类名称 例如：0#柴油 --> oil_0
+        let att = common.exchangeOilType(oilRecord.Oiltype);//根据中控系统油品种类转换为自己的油品种类名称 例如：0#柴油 --> oil_0
         console.log(att)
         let attributes = []
         attributes[0] = att
@@ -190,21 +248,21 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
 
         console.log("加油单价 => " + price)
         console.log("加油优惠金额 => " + oilTypeDiscount[att])
-        console.log("加油升数 => " + data.data.OilRecord[0].Lit)
-        console.log("加油金额 => " + data.data.OilRecord[0].OilMount)
-        let payMount = (price - oilTypeDiscount[att]) * data.data.OilRecord[0].Lit
+        console.log("加油升数 => " + oilRecord.Lit)
+        console.log("加油金额 => " + oilRecord.OilMount)
+        let payMount = (price - oilTypeDiscount[att]) * oilRecord.Lit
         payMount = payMount.toFixed(2);
         console.log("支付金额 => " + payMount)
-        if (payMount > parseFloat(data.data.OilRecord[0].OilMount)) {//判断支付金额大于实付金额的情况
-            payMount = data.data.OilRecord[0].OilMount
+        if (payMount > parseFloat(oilRecord.OilMount)) {//判断支付金额大于实付金额的情况
+            payMount = oilRecord.OilMount
             console.log("大于大于")
         }
 
-        let discount = data.data.OilRecord[0].OilMount - payMount
-        let lit = data.data.OilRecord[0].Lit
-        let oilType = data.data.OilRecord[0].Oiltype
-        let cc_flow_id = data.data.OilRecord[0].Fluid
-        let mount = data.data.OilRecord[0].OilMount
+        let discount = oilRecord.OilMount - payMount
+        let lit = oilRecord.Lit
+        let oilType = oilRecord.Oiltype
+        let cc_flow_id = oilRecord.Fluid
+        let mount = oilRecord.OilMount
 
         console.log(" oil type ===============> ")
         console.log(" oil type => " + oilType)
@@ -212,7 +270,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
         console.log(" station id => " + station_id)
         console.log("折扣 => " + discount)
         if (discount == 0) {//优惠为零的时候，使用油站的总价
-            payMount = data.data.OilRecord[0].OilMount
+            payMount = oilRecord.OilMount
         }
         let {province_id} = await Station.findOne({
             where: {
@@ -229,8 +287,8 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
         console.log("===============AAAAA===========")
         console.log("==========================")
         console.log(JSON.stringify(oil))
-        let str = "payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " data.data.OilRecord[0].OilMount: " + data.data.OilRecord[0].OilMount
-        console.log("payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " data.data.OilRecord[0].OilMount: " + data.data.OilRecord[0].OilMount)
+        let str = "payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " oilRecord.OilMount: " + oilRecord.OilMount
+        console.log("payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " oilRecord.OilMount: " + oilRecord.OilMount)
         console.log(JSON.stringify(data))
         console.log("==> get")
         let trade_no = wx.getWxPayOrdrID()
@@ -259,9 +317,9 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             status: 0
             , msg: "success"
             , data: {
-                Oiltype: data.data.OilRecord[0].Oiltype
-                , Lit: data.data.OilRecord[0].Lit
-                , OilMount: data.data.OilRecord[0].OilMount
+                Oiltype: oilRecord.Oiltype
+                , Lit: oilRecord.Lit
+                , OilMount: oilRecord.OilMount
                 , PayMount: payMount
                 , discount: discount.toFixed(2)
                 , station_id: station_id
@@ -269,6 +327,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
                 , name: name
                 , station_type: type
                 , time: order.created_at
+                , trade_no: cc_flow_id
             }
         };
     } catch (e) {
@@ -283,7 +342,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
 router.post('/card', async (ctx, next) => {
     try {
         console.log(ctx.request.body)
-        let {user_id, station_id, gun_id, new_password, pay_money, discount, pay_channel, oil_id} = ctx.request.body
+        let {user_id, station_id, gun_id, new_password, pay_money, discount, pay_channel, oil_id, Fluid} = ctx.request.body
         let station = await Station.findOne({
             where: {
                 id: station_id
@@ -340,10 +399,25 @@ router.post('/card', async (ctx, next) => {
                 };
                 return
             }
+            console.log("支付 通过中控流水号来定位支付的订单 1")
 
-            let lit = unPayOrder.data.OilRecord[0].Lit
-            let oilType = unPayOrder.data.OilRecord[0].Oiltype
-            let cc_flow_id = unPayOrder.data.OilRecord[0].Fluid
+            let ccRecord;
+            if (Fluid) {
+                unPayOrder.data.OilRecord.forEach((record, index) => {
+                    if (Fluid && record.Fluid && Fluid == record.Fluid) {
+                        ccRecord = record;
+                        console.log("支付 通过中控流水号来定位支付的订单 2")
+
+                    }
+                })
+            }
+
+            let oilRecord = ccRecord
+            console.log("支付 通过中控流水号来定位支付的订单 3")
+
+            let lit = oilRecord.Lit
+            let oilType = oilRecord.Oiltype
+            let cc_flow_id = oilRecord.Fluid
             let {province_id} = await Station.findOne({
                 where: {
                     id: station_id
@@ -356,7 +430,7 @@ router.post('/card', async (ctx, next) => {
                 }
             })
 
-            let payResult = await ct.wechatPay(station_id, unPayOrder.data.OilRecord[0].Fluid, pay_money, unPayOrder.data.OilRecord[0].OilMount);
+            let payResult = await ct.wechatPay(station_id, oilRecord.Fluid, pay_money, oilRecord.OilMount);
             console.log(payResult)
             let {data, code} = payResult
 
@@ -753,7 +827,9 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             let poundage = (parseFloat(total_fee) / 1000 * 3).toFixed(2)
             paramter["poundage"] = poundage
 
-            paramter["card_id"] = card.id
+            if (card && card.id) {
+                paramter["card_id"] = card.id
+            }
             if (order.cc_flow_id) {
                 paramter["cc_flow_id"] = order.cc_flow_id
             } else {
@@ -768,27 +844,17 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             if (order.station_id) {
                 paramter["station_id"] = order.station_id
             }
-
-
             if (order.oil_id) {
                 paramter["oil_id"] = order.oil_id
             }
             if (order.gun_id) {
                 paramter["oil_gum_num"] = order.gun_id
             }
-
-
-            console.log("=111==============================")
-            console.log("=111==============================")
             console.log("=111==============================")
             console.log(paramter)
             console.log("=222==============================")
-            console.log("=222==============================")
-            console.log("=222==============================")
             let oilFlow = await OilFlow.create(paramter)
             let payResult = await ct.wechatPay(order.station_id, order.cc_flow_id, total_fee, order.mount);
-
-
             ctx.body =
                 "<xml>\n" +
                 "  <return_code><![CDATA[SUCCESS]]></return_code>\n" +
@@ -803,54 +869,6 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
     }
 )
 
-router.post('/internel/callback', async (ctx, next) => {//兆方卡充值回调
-    try {
-        let {pay_money, oilType, lit, gun_id, discount, cc_flow_id, user_id} = ctx.request.body;
-
-        let user = await User.findOne({
-            where: {
-                id: user_id
-            }
-            , attributes: ['id', 'total_vol']
-        })
-
-        let total_vol = user.total_vol
-        total_vol += lit
-
-        await User.update({
-            total_vol: total_vol
-        }, {
-            where: {
-                id: user_id
-            }
-        })
-
-        let oilFlow = await OilFlow.create({
-            money: pay_money   //加油金额
-            , oil_type: oilType  //优品类别
-            , vol: lit  //升数，加油生数
-            , pay_channel: "1"      //支付通道（1 - 个人卡，2 - 单位卡，3 - 微信支付）
-            // , station_id: {
-            //     type: DataTypes.BIGINT(11)
-            //     , allowNull: true
-            // }     //油站ID
-            , oil_gum_num: gun_id     //油枪号
-            , deduction_amount: discount      //优惠券抵扣金额
-            // , come_channel: DataTypes.STRING      //入口通道
-            , is_invoicing: "1"      //是否开过发票
-            // , poundage: DataTypes.DECIMAL(10, 2)  //手续费
-            // , card_id: id //卡号
-            // , oil_id: DataTypes.INTEGER //
-            , cc_flow_id: cc_flow_id //中控流水 id
-            , user_id: user_id //用户 id，加油的人
-
-        })
-
-    } catch (e) {
-        console.log(e)
-    }
-
-})
 
 router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
     try {
@@ -943,6 +961,7 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
             // , attributes: ['amount_start']
             , order: [['amount_start', 'DESC']]
 
+
         })
         console.log("=======================?:::")
         console.log("=======================?:::")
@@ -955,16 +974,19 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
         for (let index = 0; index < discountRule.length; index++) {
             console.log("============> >>>>>>>>  " + index)
             let rule = discountRule[index];
-            if (index == 0 && total_fee > rule.amount_start) {
+            if (index == 0 && total_fee >= rule.amount_start) {
                 console.log("111111111111111111111111111111111111111")
                 let discountEndTime = new Date(rule.discount_date_end)//计算优惠的截止日期，当前的日期大于优惠的截止日期时，不给当前优惠添加优惠
                 if (now.getTime() > discountEndTime.getTime()) {
-
+                    console.log("油站的规则日期已经过期。")
                     continue;
                 }
                 let cha = parseInt(rule.discount_days) * dayTime;
                 let end = new Date(now.getTime() + cha)
-                console.log("==> " + end)
+                console.log("不过期，进入到规则生成阶段")
+                console.log("不过期，进入到规则生成阶段")
+                console.log("不过期，进入到规则生成阶段")
+                console.log("= time => " + end.getTime())
                 UserDiscountRule.create({
                     // oil_type: DataTypes.STRING       //油的种类
                     // , station_id: DataTypes.BIGINT(11)   //油站ID
@@ -992,14 +1014,19 @@ router.all('/charge/callback', async (ctx, next) => {//兆方卡充值回调
                 })
                 console.log("  添加了优惠幅度的金额如下： ==> " + JSON.stringify(rule))
                 break;
-            } else if (total_fee > rule.amount_start && total_fee < discountRule[index - 1].amount_start) {
+            } else if (total_fee >= rule.amount_start && total_fee < discountRule[index - 1].amount_start) {
                 console.log("22222222222222222222222222222222222222222")
                 let discountEndTime = new Date(rule.discount_date_end)//计算优惠的截止日期，当前的日期大于优惠的截止日期时，不给当前优惠添加优惠
                 if (now.getTime() > discountEndTime.getTime()) {
+                    console.log("油站的规则日期已经过期。")
                     continue;
                 }
                 let cha = parseInt(rule.discount_days) * dayTime;
                 let end = new Date(now.getTime() + cha)
+                console.log("= time => " + end.getTime())
+                console.log("不过期，进入到规则生成阶段")
+                console.log("不过期，进入到规则生成阶段")
+                console.log("不过期，进入到规则生成阶段")
                 UserDiscountRule.create({
                     // oil_type: DataTypes.STRING       //油的种类
                     // , station_id: DataTypes.BIGINT(11)   //油站ID

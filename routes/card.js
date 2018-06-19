@@ -81,7 +81,7 @@ router.get('/userId/:userId', async (ctx, next) => {
             }]*/
         })
         console.log("==  card ======> get")
-        console.log(card)
+        console.log(JSON.stringify(card))
         ctx.body = {
             status: 0
             , msg: "success"
