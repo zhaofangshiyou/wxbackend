@@ -20,7 +20,7 @@ const Conn = require('../db/mysql_connection')
 class AuthModel {
     async loginAuth(login, password){
         let ret = await BackendUser.findAll({
-            attributes : ["id","login","name",["permissions","authId"],"admin","role"],
+            attributes : ["id","login","name",["permissions","authId"],"admin","role","station_id"],
             where : {
                 login : login ,
                 password : password
@@ -32,7 +32,7 @@ class AuthModel {
 
     async queryUserById(id){
         let ret = await BackendUser.findAll({
-            attributes : ["id","login","name",["permissions","authId"],"admin","role"],
+            attributes : ["id","login","name",["permissions","authId"],"admin","role","station_id"],
             where : {
                 id : id
             },

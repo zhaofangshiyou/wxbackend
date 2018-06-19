@@ -305,7 +305,7 @@ let BackendUser = mSequelize.define('backend_user', {
     permissions : DataTypes.STRING,  //权限
     role : DataTypes.STRING,  //角色
     admin : DataTypes.INTEGER, //0不是管理员 ， 1管理员
-    dept : DataTypes.STRING, //用户所属部门
+    station_id : DataTypes.INTEGER, //用户所属部门
 }, {
     timestamps: true,//该属性将会自动添加createdAt、updatedAt两个字段，分别表示创建和更新时间
     underscored: true,//使用下划线，自动添加的字段会在数据段中使用“蛇型命名”规则，如：createdAt在数据库中的字段名会是created_at
