@@ -62,7 +62,8 @@ class ConsumeModel {
         } else {
             sql = "SELECT sum((of.money + of.deduction_amount)) as money_total," +
                 "         sum(of.vol) as vol_total," +
-                "         sum((of.money)) as actual_money_total" +
+                "         sum((of.money)) as actual_money_total, " +
+                "         sum((of.money - of.poundage)) as wallet_recv_total " +
                 "    FROM" +
                 "       stations sta," +
                 "       oil_flows of" +
