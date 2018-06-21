@@ -64,6 +64,7 @@ class ConsumeModel {
             sql = "SELECT sum((of.money + of.deduction_amount)) as money_total," +
                 "         sum(of.vol) as vol_total," +
                 "         sum((of.money)) as actual_money_total, " +
+                "         sum((of.poundage)) as poundage_total, " +
                 "         sum((of.money - of.poundage)) as wallet_recv_total " +
                 "    FROM" +
                 "       stations sta," +
@@ -139,6 +140,8 @@ class ConsumeModel {
                 "    sum(of.vol) as vol , " +
                 "    sum((of.money+of.deduction_amount)) as money, " +
                 "    sum(of.money) as actual_money, " +
+                "    sum((of.money - of.poundage))  as wallet_recv, "+
+                "    sum(of.poundage) as poundage , " +
                 "    now() as currrent_time " +
                 "  FROM " +
                 "    stations sta, " +
@@ -154,6 +157,8 @@ class ConsumeModel {
                 "    sum(of.vol) as vol ," +
                 "    sum((of.money+of.deduction_amount)) as money," +
                 "    sum(of.money) as actual_money," +
+                "    sum((of.money - of.poundage))  as wallet_recv, "+
+                "    sum(of.poundage) as poundage , " +
                 "    now() as currrent_time " +
                 " FROM" +
                 "    stations sta," +
@@ -165,7 +170,9 @@ class ConsumeModel {
             sql = "SELECT " +
                 "    sum(of.vol)  as vol_total, " +
                 "    sum((of.money+of.deduction_amount)) as money_total, " +
-                "    sum(of.money) as actual_money_total " +
+                "    sum(of.money) as actual_money_total, " +
+                "         sum((of.poundage)) as poundage_total, " +
+                "         sum((of.money - of.poundage)) as wallet_recv_total " +
                 "  FROM" +
                 "    stations sta," +
                 "    oil_flows of " +
