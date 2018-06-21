@@ -43,6 +43,7 @@ class ConsumeModel {
                 "    of.vol ," +
                 //"    of.money , " +   应收金额
                 "    (of.money+of.deduction_amount) as money, "+  
+                "   (of.money - of.poundage)  as wallet_recv, "+
                 "    of.poundage," +
                 "    of.deduction_amount as discount," +
                 "    of.pay_channel as pay_type," +
