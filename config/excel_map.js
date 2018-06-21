@@ -42,7 +42,8 @@
             ponudage : "手续费",
             discount : "优惠金额",
             pay_channel : "支付方式",
-            actual_money : "实收金额"
+            actual_money : "实收金额",
+            wallet_recv : "实际到账"
         }
     };
     // consume_list 消费汇总
@@ -54,7 +55,9 @@
             vol : "升数",
             money : "应收金额",
             actual_money : "实收金额",
-            current_time : "汇总时间"
+            current_time : "汇总时间",
+            wallet_recv : "实际到账",
+            poundage : "手续费"
         }
     };
     //recharge_detail_list 充值明细
