@@ -20,14 +20,14 @@ const Conn = require('../db/mysql_connection')
 class QueryModel {
     //发票
     async queryOilFlowList(msg_type,userId,is_invoicing,page_num,num){
-
-        let sql = "SELECT of.* , concat(c.card_prefix, LPAD(c.id,8,0)) as card_no from oil_flows of , cards c ,users u"+
-                " where of.card_id = c.id and of.deleted_at is null "+
-                "   and c.deleted_at is null and u.id = c.user_id  "+
+        let sqlc = ""
+        let sql = "select * from (SELECT of.*  from oil_flows of  ,users u"+
+                " where of.user_id = u.id and of.deleted_at is null "+
+               // "   and c.deleted_at is null and u.id = c.user_id  "+
                 "   and u.deleted_at is null "
 
         if (msg_type && msg_type!=""){
-            sql = sql + " and c.unit_card_type = :type "
+            sqlc = " and c.unit_card_type = :type "
         }
 
         if (userId && userId!=""){
@@ -38,7 +38,9 @@ class QueryModel {
             sql = sql + " and of.is_invoicing = :is_invoicing "
         }
 
-        sql = sql + " order by of.created_at desc "
+        sql = sql + ")a left join (select c.id, concat(c.card_prefix, LPAD(c.id,8,0)) as card_no from cards c "+ 
+            "   where c.deleted_at is null " + sqlc +
+            " ) b on a.card_id = b.id order by a.created_at desc "
         if((page_num>=0) && (num>0)) {
             sql = sql + " limit :page, :num";
         }

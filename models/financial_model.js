@@ -33,10 +33,12 @@ class ConsumeModel {
 
         // 查找明细列表，包含被注销的卡
         if (type == 1) {
-            sql = "SELECT " +
+            sql = "SELECT * from " +
+                "  ( select "+
                 "    sta.province as province_name," +
                 "    sta.name as station_name," +
-                "    concat(c.card_prefix,LPAD(of.card_id,8,0)) as card_no," +
+                "    of.card_id, "+
+               // "    concat(c.card_prefix,LPAD(of.card_id,8,0)) as card_no," +
                 "    of.created_at as consume_time," +
                 "    of.oil_gum_num as gum_num," +
                 "    of.oil_type as oil_name, " +
@@ -54,10 +56,10 @@ class ConsumeModel {
                 "    (of.money) as actual_money" +
                 "  FROM" +
                 "    stations sta," +
-                "    oil_flows of," +
-                "    cards c "+
+                "    oil_flows of " +
+              //  "    cards c "+
                 " where sta.id = of.station_id " +
-                "   and c.id = of.card_id "+
+              //  "   and c.id = of.card_id "+
                 "   and of.deleted_at is null ";
         //查找总数
         } else {
@@ -106,7 +108,9 @@ class ConsumeModel {
         }
 
         if (type ==1) {
-            sql = sql + "order by of.created_at desc ,of.oil_gum_num asc"
+            sql = sql +" ) a  "+
+            " left join (select id, concat(c.card_prefix,LPAD(c.id,8,0)) as card_no from cards c ) b "+
+            "   on a.card_id = b.id "+ "order by a.consume_time desc ,a.gum_num asc"
         }
 
         if ((page_num >= 0) && (num > 0)) {
