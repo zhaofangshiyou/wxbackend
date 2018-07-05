@@ -98,8 +98,8 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
     try {
         let {station_id, gun_id, oil_id, oil_type, write_money, user_id, Fluid} = ctx.query;
         console.log(ctx.query)
-        let {name, type} = await Station.findOne({
-            attributes: ['name', 'type']
+        let {name, type, card_prefix} = await Station.findOne({
+            attributes: ['name', 'type', 'card_prefix']
             , where: {
                 id: parseInt(station_id)
             }
@@ -181,24 +181,19 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             };
             return
         }
-        console.log("生成订单 通过中控流水号来定位支付的订单 1")
-
         let ccRecord;
         if (Fluid) {
             data.data.OilRecord.forEach((record, index) => {
                 if (Fluid && record.Fluid && Fluid == record.Fluid) {
                     ccRecord = record;
-                    console.log("生成订单 通过中控流水号来定位支付的订单 2")
+                    console.log("生成订单 通过中控流水号来定位支付的订单，订单号为：" + Fluid)
                 }
             })
         }
-        console.log("生成订单 通过中控流水号来定位支付的订单 3")
 
         let oilRecord = ccRecord;
+        console.log("====> " + JSON.stringify(oilRecord))
         console.log("====> " + oilRecord.Oiltype)
-        console.log("====> ")
-        console.log("====> ")
-        console.log("====> " + oilRecord)
         let {price} = await Oil.findOne({
             attributes: ['price']
             , where: {
@@ -221,7 +216,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             }
             , order: [['amount_start', 'DESC']]
         })
-        console.log("================ 优惠 =============》》》》。" + JSON.stringify(oilTypeDiscount))
+        console.log("================ 优惠 =============> " + JSON.stringify(oilTypeDiscount))
 
 
         if (oilTypeDiscount == null) {//判断用户没有优惠的情况
@@ -231,10 +226,10 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             let time = new Date(oilTypeDiscount['discount_date_end'])
             console.log(" ================>   " + (time.getTime() - now.getTime()))
             if ((time.getTime() - now.getTime()) > 0) {
-                console.log("============ 有用的优惠 =============")
+                console.log("============ 该用户拥有有效的优惠 =============")
             } else {
                 oilTypeDiscount = {att: 0}
-                console.log("============ 没没没没用的优惠 =============")
+                console.log("============ 该用户当前优惠已过期 =============")
             }
         }
         if (!oilTypeDiscount[att]) {//判断用户没有优惠的情况
@@ -263,10 +258,8 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
         let oilType = oilRecord.Oiltype
         let cc_flow_id = oilRecord.Fluid
         let mount = oilRecord.OilMount
-
-        console.log(" oil type ===============> ")
+        console.log("中控流水 id => " + oilRecord.Fluid)
         console.log(" oil type => " + oilType)
-
         console.log(" station id => " + station_id)
         console.log("折扣 => " + discount)
         if (discount == 0) {//优惠为零的时候，使用油站的总价
@@ -283,16 +276,12 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             }
         })
 
-        console.log("==========================")
         console.log("===============AAAAA===========")
-        console.log("==========================")
         console.log(JSON.stringify(oil))
         let str = "payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " oilRecord.OilMount: " + oilRecord.OilMount
         console.log("payMount: " + payMount + " price: " + price + " oil_92: " + oilTypeDiscount[att] + " discount: " + discount + " oilRecord.OilMount: " + oilRecord.OilMount)
         console.log(JSON.stringify(data))
-        console.log("==> get")
-        let trade_no = wx.getWxPayOrdrID()
-        console.log("2222222222222222")
+        let trade_no = card_prefix + wx.getWxPayOrdrID()
         // let paramter = common.setParamter()
         // console.log(paramter)
         let order = await Order.create({
@@ -306,7 +295,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
             , good_name: oilType   //商品名
             , good_description: "商品描述"   //商品描述
             , price: price  //单价
-            , amount: lit      //数量
+            , amount: lit      //数量,升数
             , discount: discount      //折扣
             , gun_id: gun_id      //油枪号
             , oil_id: oil.oil_id      //oil_id
@@ -339,7 +328,7 @@ router.get('/flow/order', async (ctx, next) => {//在此处生成订单，并返
     }
 })
 
-router.post('/card', async (ctx, next) => {
+router.post('/card', async (ctx, next) => {//卡支付
     try {
         console.log(ctx.request.body)
         let {user_id, station_id, gun_id, new_password, pay_money, discount, pay_channel, oil_id, Fluid} = ctx.request.body
@@ -399,22 +388,18 @@ router.post('/card', async (ctx, next) => {
                 };
                 return
             }
-            console.log("支付 通过中控流水号来定位支付的订单 1")
-
             let ccRecord;
             if (Fluid) {
                 unPayOrder.data.OilRecord.forEach((record, index) => {
                     if (Fluid && record.Fluid && Fluid == record.Fluid) {
                         ccRecord = record;
-                        console.log("支付 通过中控流水号来定位支付的订单 2")
+                        console.log("卡支付 通过中控流水号来定位支付的订单,订单号为：" + Fluid)
 
                     }
                 })
             }
 
             let oilRecord = ccRecord
-            console.log("支付 通过中控流水号来定位支付的订单 3")
-
             let lit = oilRecord.Lit
             let oilType = oilRecord.Oiltype
             let cc_flow_id = oilRecord.Fluid
@@ -429,20 +414,35 @@ router.post('/card', async (ctx, next) => {
                     province_id: province_id
                 }
             })
+            let {id, person_balance} = await Card.findOne({
+                where: {
+                    user_id: user_id
+                }
+                , attributes: ['id', 'person_balance']
+            })
 
-            let payResult = await ct.wechatPay(station_id, oilRecord.Fluid, pay_money, oilRecord.OilMount);
+
+            //计算个人卡余额
+            console.log("person_balance 原来 => " + person_balance)
+            person_balance = person_balance - parseFloat(pay_money)
+            console.log("person_balance 增量 => " + pay_money)
+            console.log("person_balance => " + person_balance)
+            console.log(" 类型 => " + typeof person_balance)
+            if (person_balance < 0) {
+                ctx.body = {
+                    status: 3
+                    , msg: "pay error,no enough money"
+                };
+                return
+            }
+
+
+            let payResult = await ct.wechatPay(station_id, oilRecord.Fluid, pay_money, oilRecord.OilMount, '8');
             console.log(payResult)
             let {data, code} = payResult
 
             if (code == 0) {// 中控支付成功标识 0 - 成功，1 - 失败
-                console.log("22222222222")
-
-                let {id, person_balance} = await Card.findOne({
-                    where: {
-                        user_id: user_id
-                    }
-                    , attributes: ['id', 'person_balance']
-                })
+                console.log("中控支付成功")
                 let user = await User.findOne({
                     where: {
                         id: user_id
@@ -477,23 +477,8 @@ router.post('/card', async (ctx, next) => {
                 console.log("welfare_amount 原来 => " + user.welfare_amount)
                 console.log("welfare_amount 增量 => " + (lit / 100).toFixed(2))
                 console.log("welfare_amount => " + welfare_amount)
-                //计算个人卡余额
-                console.log("person_balance 原来 => " + person_balance)
-
-                person_balance = person_balance - parseFloat(pay_money)
-
-                console.log("person_balance 增量 => " + pay_money)
-                console.log("person_balance => " + person_balance)
 
 
-                console.log(" 类型 => " + typeof person_balance)
-                if (person_balance < 0) {
-                    ctx.body = {
-                        status: 3
-                        , msg: "pay error,no enough money"
-                    };
-                    return
-                }
                 if (total_vol > 0) {//更新个人加油升数,积分，不能为负数,生成积分流水
                     console.log("====================>  " + welfare_amount)
                     console.log("================= 存入数据库的 score ===>  " + score)
@@ -532,8 +517,6 @@ router.post('/card', async (ctx, next) => {
                         user_id: user_id
                     }
                 })
-
-
                 //添加消费流水
                 let paramter = {}
                 if (pay_money) {
@@ -590,6 +573,8 @@ router.post('/card', async (ctx, next) => {
                     , msg: "success"
                 };
             } else {
+                console.log("中控支付失败")
+
                 ctx.body = {
                     status: 2
                     , msg: "pay error"
@@ -684,8 +669,6 @@ router.post('/card', async (ctx, next) => {
                 paramter["user_id"] = user.id
             }
             console.log("==========================AAA")
-            console.log("==========================AAA")
-            console.log("==========================AAA")
             console.log(user_id)
             console.log(JSON.stringify(order))
             console.log(order.trade_no)
@@ -756,9 +739,9 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
                 where: {
                     open_id: openid
                 }
-                , attributes: ['id', 'total_vol', 'score']
+                , attributes: ['id', 'total_vol', 'score', 'welfare_amount']
             })
-            console.log("==aaaa==> " + out_trade_no)
+            console.log("== 微信支付回调：商户订单号 ==> " + out_trade_no)
 
             let order = await Order.findOne({
                 where: {
@@ -780,15 +763,12 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
                 , order: [['created_at', 'DESC']]
 
             })
-
-            // console.log("=============>  " + order)
             let station = await Station.findOne({
                 where: {
                     id: order.station_id
                 }
             })
             // console.log(order)
-
             let card = await Card.findOne({
                 where: {
                     user_id: user.id
@@ -804,9 +784,6 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             //     }
             // })
             //添加消费流水
-            console.log("=================")
-            console.log("=================")
-            console.log("=================")
             console.log("=================")
             // console.log(order)
             let paramter = {}
@@ -850,11 +827,38 @@ router.all('/callback', async (ctx, next) => {//微信支付油钱的回调
             if (order.gun_id) {
                 paramter["oil_gum_num"] = order.gun_id
             }
-            console.log("=111==============================")
+            console.log("微信支付，生成加油流水参数 => ")
             console.log(paramter)
-            console.log("=222==============================")
+            console.log("===============================")
             let oilFlow = await OilFlow.create(paramter)
-            let payResult = await ct.wechatPay(order.station_id, order.cc_flow_id, total_fee, order.mount);
+            let payResult = await ct.wechatPay(order.station_id, order.cc_flow_id, total_fee, order.mount, '41');
+
+            //计算加油升数
+            let lit = parseFloat(order.amount);
+            let total_vol = parseFloat(user.total_vol);
+            let welfare_amount = parseFloat(user.welfare_amount);
+            total_vol += parseFloat(lit);
+            total_vol = total_vol.toFixed(2)
+            //计算公益金
+            welfare_amount += parseFloat((lit / 100).toFixed(2))
+            console.log("微信支付：total_vol 原来 => " + user.total_vol)
+            console.log("微信支付：total_vol 增加的量 => " + lit)
+            console.log("微信支付：total_vol 增加之后的 => " + total_vol)
+            console.log("微信支付：welfare_amount 原来 => " + user.welfare_amount)
+            console.log("微信支付：welfare_amount 增量 => " + (lit / 100).toFixed(2))
+            console.log("微信支付：welfare_amount => " + welfare_amount)
+            if (total_vol > 0) {//更新个人加油升数,积分，不能为负数,生成积分流水
+                console.log("====================>  " + welfare_amount)
+                await User.update({
+                    total_vol: total_vol
+                    , welfare_amount: welfare_amount
+                }, {
+                    where: {
+                        id: user.id
+                    }
+                })
+            }
+
             ctx.body =
                 "<xml>\n" +
                 "  <return_code><![CDATA[SUCCESS]]></return_code>\n" +

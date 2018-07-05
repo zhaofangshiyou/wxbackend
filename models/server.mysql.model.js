@@ -324,7 +324,7 @@ let Order = mSequelize.define('order', {//订单表
     , good_name: DataTypes.STRING   //商品名
     , good_description: DataTypes.STRING   //商品描述
     , price: DataTypes.STRING  //单价
-    , amount: DataTypes.STRING      //数量
+    , amount: DataTypes.STRING      //数量/升数，之前考虑到订单表不只是用于加油订单，所以字段名称为 amount ，讨论后，结果为只用于加油订单
     , discount: DataTypes.STRING      //折扣
     , gun_id: DataTypes.STRING      //油枪号
     , oil_id: DataTypes.STRING      //oil_id

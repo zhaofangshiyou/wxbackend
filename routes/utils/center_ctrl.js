@@ -18,20 +18,7 @@ class CenterCtrl {
         };
         let base64Param = new Buffer(JSON.stringify(requestParam)).toString('base64');
         let url = config.CC_BASE_URL + config.CC_UTL_PATH + base64Param.replace(/\//g, '_');
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
-        console.log("=========================== "+config.CC_BASE_URL)
+        console.log("=====  当前使用的中控系统地址  ======== " + config.CC_BASE_URL)
         return url;
     }
 
@@ -94,7 +81,7 @@ class CenterCtrl {
         return currentDate;
     }
 
-    async wechatPay(stationId, fluid, payMoney, oilMount) {
+    async wechatPay(stationId, fluid, payMoney, oilMount, payType = '6') {
         // let data = await this.getUnpayOrder(station_id, gun_id);
         let data2 = await this.cRrequest({
             method: 'SetMPay',
@@ -104,7 +91,7 @@ class CenterCtrl {
             transaction_id: this.getOrderID(),
             PayMoney: payMoney,
             machMount: oilMount,//必须一致
-            PayType: '6'
+            PayType: payType
         })
         console.log(data2)
         return data2;
